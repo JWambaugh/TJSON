@@ -2,6 +2,8 @@ package ;
 
 import tjson.TJSON;
 
+import sys.io.File;
+
 class TestParser extends haxe.unit.TestCase{
 
 	public function new(){
@@ -40,8 +42,19 @@ class TestParser extends haxe.unit.TestCase{
 	}
 
 	public function testEscapeSequences(){
-		var res =TJSON.parse("['Back slash: \\\\ Tab: \\t NewLine: \\n CR: \\r']");
-		assertEquals("[Back slash: \\ Tab: \t NewLine: \n CR: \r]",Std.string(res));
+		var res =TJSON.parse("['Back slash: \\\\ Tab: \\t NewLine: \\n CR: \\r SQ: \\' DQ: \\\" ']");
+		assertEquals("[Back slash: \\ Tab: \t NewLine: \n CR: \r SQ: ' DQ: \" ]",Std.string(res));
 	}
 
+	public function testNewlineInString(){
+		var res =TJSON.parse("['This is a string.
+			It has a newline in the middle of it! This is not normally allowed. But TJSON allows for it!']");
+		assertEquals("[This is a string.
+			It has a newline in the middle of it! This is not normally allowed. But TJSON allows for it!]",Std.string(res));
+	}
+
+	public function testFile(){
+		var data = File.getContent("tests/testJSON.json");
+		trace(Std.string(TJSON.parse(data)));
+	}
 }

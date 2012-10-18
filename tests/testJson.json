@@ -1,0 +1,19 @@
+
+/* 
+	TJSOon test file
+	this file is used for testing the TJSON parser.
+	TJSON is the Tolerant JSON parser.
+*/
+{
+	keyWithNoString:{
+		'keyWith single quote':"value
+		with a newline in the middle!"
+	}
+
+	"arrayWithNoCommaBeforeIt":[]
+
+
+
+
+
+}
