@@ -105,7 +105,29 @@ class TJSON {
 
 			if(inQuote){
 				if(inEscape){
-					//TODO: do this
+					inEscape = false;
+					if(c=="'" || c=='"'){
+						symbol += c;
+						continue;
+					}
+					if(c=="t"){
+						symbol +="\t";
+						continue;
+					}
+					if(c=="n"){
+						symbol +="\n";
+						continue;
+					}
+					if(c=="\\"){
+						symbol +="\\";
+						continue;
+					}
+					if(c=="r"){
+						symbol +="\r";
+						continue;
+					}
+
+					throw "Invalid escape sequence '\\"+c+"'";
 				}else{
 					if(c == "\\"){
 						inEscape = true;

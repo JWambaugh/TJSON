@@ -39,4 +39,9 @@ class TestParser extends haxe.unit.TestCase{
 		assertEquals("[1,2,3,4,5,6,A string]",Std.string(res));
 	}
 
+	public function testEscapeSequences(){
+		var res =TJSON.parse("['Back slash: \\\\ Tab: \\t NewLine: \\n CR: \\r']");
+		assertEquals("[Back slash: \\ Tab: \t NewLine: \n CR: \r]",Std.string(res));
+	}
+
 }
