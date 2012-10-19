@@ -5,10 +5,12 @@ class TJSON {
 
 	static var pos:Int;
 	static var json:String;
+	static var lastSymbolQuoted:Bool; //true if the last symbol was in quotes.
 	public static function parse(json:String):Dynamic{
 		TJSON.json = json;
 		pos = 0;
 		var symbol:String;
+
 		return doParse();
 	}
 
@@ -45,9 +47,9 @@ class TJSON {
 			}else if(v=="["){
 				val = doArray();
 			}else{
-				val = v;
+				val = convertSymbolToProperType(v);
 			}
-
+			trace("VAL: "+val);
 			Reflect.setField(o,key,val);
 		}
 		throw "Unexpected end of file. Expected '}'";
@@ -68,13 +70,44 @@ class TJSON {
 				val = doObject();
 			}else if(val=="["){
 				val = doArray();
+			}else{
+				val = convertSymbolToProperType(val);
 			}
 			a.push(val);
 		}
 		throw "Unexpected end of file. Expected ']'";
 	}
 
+	private static function convertSymbolToProperType(symbol):Dynamic{
+		if(lastSymbolQuoted) return symbol; //things is quotes are always strings
+		if(looksLikeFloat(symbol)){
+			return Std.parseFloat(symbol);
+		}
+		if(looksLikeInt(symbol)){
+			return Std.parseInt(symbol);
+		}
+		return symbol;
+	}
+
+
+	private static function looksLikeFloat(s:String):Bool{
+		var r = ~/^[0-9].\.?[0-9]+$/;
+		if(r.match(s)){
+			return true;
+		}
+		return false;
+	}
+
+	private static function looksLikeInt(s:String):Bool{
+		var r = ~/^[0-9]+$/;
+		if(r.match(s)){
+			return true;
+		}
+		return false;
+	}
+
 	private static function getNextSymbol(){
+		lastSymbolQuoted=false;
 		var c:String = '';
 		var inQuote:Bool = false;
 		var quoteType:String="";
@@ -164,7 +197,7 @@ class TJSON {
 			
 
 			if (inSymbol){
-				if(c==' ' || c=="\n" || c==',' || c==":" || c=="}" || c=="]"){ //end of symbol, return it
+				if(c==' ' || c=="\n" || c=="\r" || c=="\t" || c==',' || c==":" || c=="}" || c=="]"){ //end of symbol, return it
 					pos--;
 					return symbol;
 				}else{
@@ -187,6 +220,7 @@ class TJSON {
 				if(c=="'" || c=='"'){
 					inQuote = true;
 					quoteType = c;
+					lastSymbolQuoted = true;
 					continue;
 				}else{
 					inSymbol=true;
@@ -196,6 +230,9 @@ class TJSON {
 
 
 			}
+		} // end of while. We have reached EOF if we are here.
+		if(inQuote){
+			throw "Unexpected end of data. Expected ( "+quoteType+" )";
 		}
 		return symbol;
 	}

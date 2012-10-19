@@ -55,6 +55,8 @@ class TestParser extends haxe.unit.TestCase{
 
 	public function testFile(){
 		var data = File.getContent("tests/testJSON.json");
-		trace(Std.string(TJSON.parse(data)));
+		var o = TJSON.parse(data);
+		trace(Std.string(o));
+		assertEquals(300,Reflect.field(o.keyWithNoString,'k2'));
 	}
 }
