@@ -26,7 +26,7 @@ Use in your code
 
 Import TJSON class with:
 
-	import TJSON;
+	import tjson.TJSON;
 
 Then you can read JSON data with:
 
