@@ -1,4 +1,4 @@
-TJson
+TJSON
 =====
 
 The tolerant JSON parser for HaXe
