@@ -1,0 +1,12 @@
+<project name="tjson" url="https://github.com/martamius/TJSON" license="GPL">
+    <user name="martamius"/>
+    <tag v="json"/>
+    <tag v="tjson"/>
+    <tag v="tolerant"/>
+    <tag v="javascript"/>
+    <tag v="parser"/>
+    <tag v="js"/>
+    <tag v="cross"/>
+    <description>Tolerant JSON parser. Unserializes JSON data, but without all the strictness of standard JSON parsers. Suports comments, keys without quotes, and single quoutes.</description>
+    <version name="1.0.0">Initial Release.</version>
+</project>

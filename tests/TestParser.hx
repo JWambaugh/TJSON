@@ -11,6 +11,10 @@ class TestParser extends haxe.unit.TestCase{
 	}
 
 
+	public function testAAA(){
+		var res =TJSON.parse("[1,-2.3,3]");
+		assertEquals(-2.3,res[1]);
+	}
 
 	public function testSimple(){
 		var res =TJSON.parse("{key:'value'}");
@@ -24,7 +28,7 @@ class TestParser extends haxe.unit.TestCase{
 	public function testComplex1(){
 		var res =TJSON.parse("{key1:'value', key2:'value 2'
 		 myOb:{subkey1:'subkey1 value!!! Yah'}, 'anArray':['happy', 323, {key:val}]}");
-		assertEquals('{ key1 => value, key2 => value 2, myOb => { subkey1 => subkey1 value!!! Yah }, anArray => [happy,323,{ key => val }] }',Std.string(res));
+		assertEquals('{ key1 => value, key2 => value 2, myOb => { subkey1 => subkey1 value!!! Yah }, anArray => [happy, 323, { key => val }] }',Std.string(res));
 	}
 
 	public function testComplexWithComments(){
@@ -32,13 +36,13 @@ class TestParser extends haxe.unit.TestCase{
 			//this is a line comment.
 
 		 myOb:{subkey1:'subkey1 value!!! Yah'}, 'anArray':['happy', 323, {key:val}]}");
-		assertEquals('{ key1 => value, key2 => value 2, myOb => { subkey1 => subkey1 value!!! Yah }, anArray => [happy,323,{ key => val }] }',Std.string(res));
+		assertEquals('{ key1 => value, key2 => value 2, myOb => { subkey1 => subkey1 value!!! Yah }, anArray => [happy, 323, { key => val }] }',Std.string(res));
 	}
 
 
 	public function testArray1(){
-		var res =TJSON.parse("[1,2,3,4,5,6,'A string']");
-		assertEquals("[1,2,3,4,5,6,A string]",Std.string(res));
+		var res =TJSON.parse("[1, 2, 3, 4, 5, 6, 'A string']");
+		assertEquals("[1, 2, 3, 4, 5, 6, A string]",Std.string(res));
 	}
 
 	public function testEscapeSequences(){
@@ -56,8 +60,14 @@ class TestParser extends haxe.unit.TestCase{
 	public function testFile(){
 		var data = File.getContent("tests/testJSON.json");
 		var o = TJSON.parse(data);
-		trace(Std.string(o));
+		//trace(Std.string(o));
 		assertEquals(300,Reflect.field(o.keyWithNoString,'k2'));
+		assertEquals("key 3",Reflect.field(o.keyWithNoString,'key with spaces'));
+		assertEquals(-3.2, o.arrayWithNoCommaBeforeIt[1]);
+		assertEquals(1.0, o.arrayWithNoCommaBeforeIt[0]);
+		assertEquals(0.45, o.arrayWithNoCommaBeforeIt[3]);
+		//trace(Std.string(o.arrayWithNoCommaBeforeIt));
+		//assertEquals('oneValue', o.arrayWithNoCommaBeforeIt[4].oneKey);
 	}
 
 	public function testMoveableWall(){
