@@ -1,0 +1,5 @@
+#-neko TJSONTest.n 
+-neko TJSONTest.n
+-main TestAll
+-cp lib
+-cp tests
