@@ -2,7 +2,7 @@ package ;
 
 import tjson.TJSON;
 
-import sys.io.File;
+//import sys.io.File;
 
 class TestParser extends haxe.unit.TestCase{
 
@@ -11,76 +11,56 @@ class TestParser extends haxe.unit.TestCase{
 	}
 
 
-	public function testAAA(){
-		var res =TJSON.parse("[1,-2.3,3]");
-		assertEquals(-2.3,res[1]);
-	}
 
 	public function testSimple(){
 		var res =TJSON.parse("{key:'value'}");
-		assertEquals("{ key => value }",Std.string(res));
-	}
-
-	public function testSimple2(){
-		var res =TJSON.parse("{key1:'value', key2:'value 2'}");
-		assertEquals("{ key1 => value, key2 => value 2 }",Std.string(res));
-	}
-	public function testComplex1(){
-		var res =TJSON.parse("{key1:'value', key2:'value 2'
-		 myOb:{subkey1:'subkey1 value!!! Yah'}, 'anArray':['happy', 323, {key:val}]}");
-		assertEquals('{ key1 => value, key2 => value 2, myOb => { subkey1 => subkey1 value!!! Yah }, anArray => [happy, 323, { key => val }] }',Std.string(res));
-	}
-
-	public function testComplexWithComments(){
-		var res =TJSON.parse("{key1:'value',/* block comment*/ key2:'value 2'
-			//this is a line comment.
-
-		 myOb:{subkey1:'subkey1 value!!! Yah'}, 'anArray':['happy', 323, {key:val}]}");
-		assertEquals('{ key1 => value, key2 => value 2, myOb => { subkey1 => subkey1 value!!! Yah }, anArray => [happy, 323, { key => val }] }',Std.string(res));
+		assertEquals('value',res.key);
 	}
 
 
-	public function testArray1(){
-		var res =TJSON.parse("[1, 2, 3, 4, 5, 6, 'A string']");
-		assertEquals("[1, 2, 3, 4, 5, 6, A string]",Std.string(res));
-	}
+	public function testComplex(){
+		var data = '/* 
+			TJSON test file
+			this file is used for testing the TJSON parser.
+			TJSON is the Tolerant JSON parser.
+			*/
+			{
+				keyWithNoString:{
+					\'keyWithsinglequote\' : "value with a 
+					newline in the middle!"
+					,k2:300
+					"key with spaces": "key 3"
+				}
+				// this is a single line comment
 
-	public function testEscapeSequences(){
-		var res =TJSON.parse("['Back slash: \\\\ Tab: \\t NewLine: \\n CR: \\r SQ: \\' DQ: \\\" ']");
-		assertEquals("[Back slash: \\ Tab: \t NewLine: \n CR: \r SQ: ' DQ: \" ]",Std.string(res));
-	}
+				"arrayWithNoCommaBeforeIt":[1,-3.2,2,.45, {
+					oneKey:oneValue
+				}]
+				,arrayWithObj:      
+					[
+					{key:aValue}
+					{key2:aValue2}
+					]
+				,boolValue: true
+				,"falseValue": false
 
-	public function testNewlineInString(){
-		var res =TJSON.parse("['This is a string.
-			It has a newline in the middle of it! This is not normally allowed. But TJSON allows for it!']");
-		assertEquals("[This is a string.
-			It has a newline in the middle of it! This is not normally allowed. But TJSON allows for it!]",Std.string(res));
-	}
 
-	public function testFile(){
-		var data = File.getContent("tests/testJSON.json");
+
+
+			}';
 		var o = TJSON.parse(data);
 		//trace(Std.string(o));
+		assertEquals("value with a 
+					newline in the middle!", o.keyWithNoString.keyWithsinglequote);
 		assertEquals(300,Reflect.field(o.keyWithNoString,'k2'));
 		assertEquals("key 3",Reflect.field(o.keyWithNoString,'key with spaces'));
 		assertEquals(-3.2, o.arrayWithNoCommaBeforeIt[1]);
 		assertEquals(1.0, o.arrayWithNoCommaBeforeIt[0]);
 		assertEquals(0.45, o.arrayWithNoCommaBeforeIt[3]);
-		//trace(Std.string(o.arrayWithNoCommaBeforeIt));
-		//assertEquals('oneValue', o.arrayWithNoCommaBeforeIt[4].oneKey);
+		assertEquals("aValue2",o.arrayWithObj[1].key2);
+		assertEquals(true,o.boolValue);
+		assertEquals(false,o.falseValue);
 	}
 
-	public function testMoveableWall(){
-		var data = File.getContent("tests/movableWallTest.json");
-		var o = TJSON.parse(data);
-		//trace(Std.string(o));
-		for (ent in cast(o.entities,Array<Dynamic>)) {
-			trace("----------------");
-			trace(Std.string(ent));
-			//trace(Type.typeof(ent.entityFile));
-			trace(Std.is(ent.entityFile,String));
-			trace(ent.entityFile);
-		}
-		
-	}
+	
 }

@@ -31,12 +31,13 @@ class TJSON {
 	}
 
 	private static function doObject():Dynamic{
-		var o = {};
+		var o:Dynamic = { };
 		var val:Dynamic='';
 		var key:String;
 		while((key=getNextSymbol()) != ""){
 			if(key==",")continue;
 			if(key == "}"){
+
 				return o;
 			}
 			var seperator = getNextSymbol();
@@ -59,8 +60,8 @@ class TJSON {
 	}
 
 	private static function doArray():Dynamic{
-		var a=[];
-		var val:String;
+		var a:Array<Dynamic>=new Array<Dynamic>();
+		var val:Dynamic;
 		while((val=getNextSymbol()) != ""){
 			if(val == ','){
 				continue;
@@ -87,6 +88,12 @@ class TJSON {
 		}
 		if(looksLikeInt(symbol)){
 			return Std.parseInt(symbol);
+		}
+		if(symbol.toLowerCase() =="true"){
+			return true;
+		}
+		if(symbol.toLowerCase() =="false"){
+			return false;
 		}
 		return symbol;
 	}

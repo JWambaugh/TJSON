@@ -7,6 +7,6 @@
     <tag v="parser"/>
     <tag v="js"/>
     <tag v="cross"/>
-    <description>Tolerant JSON parser. Unserializes JSON data, but without all the strictness of standard JSON parsers. Suports comments, keys without quotes, and single quoutes.</description>
-    <version name="1.0.0">Initial Release.</version>
+    <description>Tolerant JSON parser. Unserializes JSON data, but without all the strictness of standard JSON parsers. Supports multi and single-line comments, keys without quotes, and single quoutes.</description>
+    <version name="1.0.2">Added missing boolean value support</version>
 </project>
