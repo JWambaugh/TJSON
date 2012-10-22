@@ -1,4 +1,5 @@
--neko TJSONTest.n 
+#-neko TJSONTest.n 
+-cpp bin
 -main TestAll
 -cp lib
 -cp tests

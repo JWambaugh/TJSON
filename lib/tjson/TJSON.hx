@@ -6,6 +6,9 @@ class TJSON {
 	static var pos:Int;
 	static var json:String;
 	static var lastSymbolQuoted:Bool; //true if the last symbol was in quotes.
+	static inline var floatRegex = ~/^-?[0-9]*\.[0-9]+$/;
+	static inline var intRegex = ~/^-?[0-9]+$/;
+	
 	public static function parse(json:String):Dynamic{
 		TJSON.json = json;
 		pos = 0;
@@ -49,7 +52,6 @@ class TJSON {
 			}else{
 				val = convertSymbolToProperType(v);
 			}
-			trace("VAL: "+val);
 			Reflect.setField(o,key,val);
 		}
 		throw "Unexpected end of file. Expected '}'";
@@ -63,10 +65,10 @@ class TJSON {
 			if(val == ','){
 				continue;
 			}
-			if(val == ']'){
+			else if(val == ']'){
 				return a;
 			}
-			if(val=="{"){
+			else if(val=="{"){
 				val = doObject();
 			}else if(val=="["){
 				val = doArray();
@@ -91,16 +93,15 @@ class TJSON {
 
 
 	private static function looksLikeFloat(s:String):Bool{
-		var r = ~/^[0-9].\.?[0-9]+$/;
-		if(r.match(s)){
+		if(floatRegex.match(s)){
 			return true;
 		}
 		return false;
 	}
 
 	private static function looksLikeInt(s:String):Bool{
-		var r = ~/^[0-9]+$/;
-		if(r.match(s)){
+		
+		if(intRegex.match(s)){
 			return true;
 		}
 		return false;

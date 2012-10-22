@@ -59,4 +59,18 @@ class TestParser extends haxe.unit.TestCase{
 		trace(Std.string(o));
 		assertEquals(300,Reflect.field(o.keyWithNoString,'k2'));
 	}
+
+	public function testMoveableWall(){
+		var data = File.getContent("tests/movableWallTest.json");
+		var o = TJSON.parse(data);
+		//trace(Std.string(o));
+		for (ent in cast(o.entities,Array<Dynamic>)) {
+			trace("----------------");
+			trace(Std.string(ent));
+			//trace(Type.typeof(ent.entityFile));
+			trace(Std.is(ent.entityFile,String));
+			trace(ent.entityFile);
+		}
+		
+	}
 }
