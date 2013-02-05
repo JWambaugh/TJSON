@@ -6,15 +6,23 @@ class TJSON {
 	static var pos:Int;
 	static var json:String;
 	static var lastSymbolQuoted:Bool; //true if the last symbol was in quotes.
+	static var fileName:String;
+	static var currentLine:Int;
 	static inline var floatRegex = ~/^-?[0-9]*\.[0-9]+$/;
 	static inline var intRegex = ~/^-?[0-9]+$/;
 	
-	public static function parse(json:String):Dynamic{
+	public static function parse(json:String, ?fileName:String="JSON Data"):Dynamic{
 		TJSON.json = json;
+		TJSON.fileName = fileName;
+		TJSON.currentLine = 1;
 		pos = 0;
-		var symbol:String;
-
-		return doParse();
+		
+		try{
+			return doParse();
+		}catch(e:String){
+			throw fileName+" on line "+currentLine+": "+e;
+		}
+		return null;
 	}
 
 	private static function doParse():Dynamic{
@@ -127,7 +135,8 @@ class TJSON {
 
 		while(pos < json.length){
 			c = json.charAt(pos++);
-
+			if(c=="\n" && !inSymbol)
+				currentLine++;
 			if(inLineComment){
 				if(c=="\n" || c=="\r"){
 					inLineComment = false;
