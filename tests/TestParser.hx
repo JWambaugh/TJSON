@@ -62,5 +62,42 @@ class TestParser extends haxe.unit.TestCase{
 		assertEquals(false,o.falseValue);
 	}
 
+	public function testEncodeObject(){
+		assertEquals('{"key2":{"anotherKey":"another\\nValue"},"key":"value"}',TJSON.encode({key:'value',key2:{anotherKey:"another\nValue"}}));
+	}
+	public function testEncodeArray(){
+		assertEquals('[1,2,3,4,[10,10,{"myKey":"My\\nValue"}]]',TJSON.encode([1,2,3,4,[10,10,{myKey:"My\nValue"}]]));
+	}
+
+	public function testFullCircleObject(){
+		var origObj={
+			'1':'a'
+			,'2':'b'
+			,anArray:[
+				{
+					objectKey:'objectValue'
+					,anotherKey:'anotherValue'
+				}
+			]
+			,anotherArray:[
+					"this is a string in a sub array"
+					,"next will be a float"
+					
+				]
+		};
+		//test simple style
+		var jsonString = TJSON.encode(origObj);
+		var generatedObj = TJSON.parse(jsonString);
+		assertEquals('a',Reflect.field(generatedObj,'1'));
+		
+		assertEquals('anotherValue',Reflect.field(Reflect.field(generatedObj,'anArray')[0],'anotherKey'));
+
+		//test fancy style
+		var jsonString = TJSON.encode(origObj,'fancy');
+		var generatedObj = TJSON.parse(jsonString);
+		assertEquals('a',Reflect.field(generatedObj,'1'));
+		assertEquals('anotherValue',Reflect.field(Reflect.field(generatedObj,'anArray')[0],'anotherKey'));
+
+	}
 	
 }

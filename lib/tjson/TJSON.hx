@@ -1,6 +1,6 @@
 
 package tjson;
-
+using StringTools;
 class TJSON {
 
 	static var pos:Int;
@@ -8,9 +8,15 @@ class TJSON {
 	static var lastSymbolQuoted:Bool; //true if the last symbol was in quotes.
 	static var fileName:String;
 	static var currentLine:Int;
-	static var floatRegex ;
-	static var intRegex ;
-	
+	static var floatRegex;
+	static var intRegex;
+
+
+	/**
+	 * Parses a JSON string into a haxe dynamic object or array.
+	 * @param String - The JSON string to parse
+	 * @param String the file name to whic the JSON code belongs. Used for generating nice error messages.
+	 */
 	public static function parse(json:String, ?fileName:String="JSON Data"):Dynamic{
 		floatRegex = ~/^-?[0-9]*\.[0-9]+$/;
 		intRegex = ~/^-?[0-9]+$/;
@@ -25,6 +31,29 @@ class TJSON {
 			throw fileName+" on line "+currentLine+": "+e;
 		}
 		return null;
+	}
+
+	/**
+	 * Serializes a dynamic object or an array into a JSON string.
+	 * @param Dynamic - The object to be serialized
+	 * @param Dynamic - The style to use. Either an object implementing EncodeStyle interface or the strings 'fancy' or 'simple'.
+	 */
+	public static function encode(obj:Dynamic, ?style:Dynamic=null):String{
+		if(!Reflect.isObject(obj)){
+			throw("Provided object is not an object.");
+		}
+		var st:EncodeStyle;
+		if(Std.is(style, EncodeStyle)){
+			st = style;
+		}
+		else if(style == 'fancy'){
+			st = new FancyStyle();
+		}
+		else st = new SimpleStyle();
+		if(Std.is(obj,Array)) return encodeArray(obj, st, 0);
+		return encodeAnonymousObject(obj, st, 0);
+		
+		 
 	}
 
 	private static function doParse():Dynamic{
@@ -256,4 +285,136 @@ class TJSON {
 		return symbol;
 	}
 
+	private static function encodeAnonymousObject(obj:Dynamic,style:EncodeStyle,depth:Int):String{
+		var buffer = style.beginObject(depth);
+		var fieldCount=0;
+		for (field in Reflect.fields(obj)){
+			if(fieldCount++ >0) buffer += style.entrySeperator(depth);
+			else buffer += style.firstEntry(depth);
+			var value = Reflect.field(obj,field);
+			buffer += '"'+field+'"'+style.keyValueSeperator(depth);
+			buffer+=encodeValue(value, style, depth);
+		}
+		buffer += style.endObject(depth);
+		return buffer;
+	}
+
+	private static function encodeArray(obj:Dynamic, style:EncodeStyle, depth:Int){
+		var buffer = style.beginArray(depth);
+		var fieldCount=0;
+		for (value in cast(obj,Array<Dynamic>)){
+			if(fieldCount++ >0) buffer += style.entrySeperator(depth);
+			else buffer += style.firstEntry(depth);
+			buffer+=encodeValue(value, style, depth);
+			
+		}
+		buffer += style.endArray(depth);
+		return buffer;
+	}
+
+	private static function encodeValue(value, style:EncodeStyle, depth:Int):String{
+		var buffer ="";
+		if(Std.is(value, Int) || Std.is(value,Float)){
+				buffer += value;
+		}
+		else if(Std.is(value,String)){
+			buffer += '"'+value.replace("\\","\\\\").replace("\n","\\n").replace("\r","\\r")+'"';
+		}
+		else if(Std.is(value,Array)){
+			buffer+=encodeArray(value,style,depth+1);
+		}
+		else if(Reflect.isObject(value)){
+			buffer+=encodeAnonymousObject(value,style,depth+1);
+		}
+		else{
+			throw "Unsupported field type: "+Std.string(value);
+		}
+		return buffer;
+	}
+
+	
+
+
 }
+
+
+
+interface EncodeStyle{
+	
+	public function beginObject(depth:Int):String;
+	public function endObject(depth:Int):String;
+	public function beginArray(depth:Int):String;
+	public function endArray(depth:Int):String;
+	public function firstEntry(depth:Int):String;
+	public function entrySeperator(depth:Int):String;
+	public function keyValueSeperator(depth:Int):String;
+
+}
+
+class SimpleStyle implements EncodeStyle{
+	public function new(){
+
+	}
+	public function beginObject(depth:Int):String{
+		return "{";
+	}
+	public function endObject(depth:Int):String{
+		return "}";
+	}
+	public function beginArray(depth:Int):String{
+		return "[";
+	}
+	public function endArray(depth:Int):String{
+		return "]";
+	}
+	public function firstEntry(depth:Int):String{
+		return "";
+	}
+	public function entrySeperator(depth:Int):String{
+		return ",";
+	}
+	public function keyValueSeperator(depth:Int):String{
+		return ":";
+	}
+	
+}
+
+
+class FancyStyle implements EncodeStyle{
+	public function new(){
+
+	}
+	public function beginObject(depth:Int):String{
+		return "{\n";
+	}
+	public function endObject(depth:Int):String{
+		return "\n"+charTimesN("    ",depth)+"}";
+	}
+	public function beginArray(depth:Int):String{
+		return "[\n";
+	}
+	public function endArray(depth:Int):String{
+		return "\n"+charTimesN("    ",depth)+"]";
+	}
+	public function firstEntry(depth:Int):String{
+		return charTimesN("    ",depth+1)+' ';
+	}
+	public function entrySeperator(depth:Int):String{
+		return "\n"+charTimesN("    ",depth+1)+",";
+	}
+	public function keyValueSeperator(depth:Int):String{
+		return " : ";
+	}
+	private function charTimesN(str:String, n:Int):String{
+		var buffer='';
+		for(x in 0...n){
+			buffer+=str;
+		}
+		return buffer;
+	}
+	
+}
+
+
+
+

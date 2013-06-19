@@ -1,7 +1,7 @@
 TJSON
 =====
 
-The tolerant JSON parser for HaXe
+The tolerant JSON parser and encoder for HaXe
 
 TJSON is a project to create a JSON parser that is as tolerant as JavaScript is when it comes to JavaScript object notation, if not more error-tolerant.
 It supports all the current JSON standard, along with the following tollerances added:
@@ -11,6 +11,8 @@ It supports all the current JSON standard, along with the following tollerances 
 3. C style comments support - /*comment*/
 4. C++ style comments support - //comment
 5. Dangling commas don't kill it (commas  are even optional)
+
+As of 1.1.0, TJSON also includes an encoder that encodes anonymous Haxe objects and arrays into JSON!
 
 Usage
 =====
@@ -45,6 +47,29 @@ Then you can read JSON data with:
 
 It's that easy!
 
+*New in 1.1.0* Encode Haxe objects into a JSON string with:
+
+	var objectToEncode={
+		myKey:'myValue'
+	};
+	var json = TJSON.encode(objectToEncode);  // {"myKey":"myValue"}
+
+The encoder currently supports two different encoding styles. The default is 'simple', which contains no whitespace. If you want more human-readable output, try the 'fancy' style:
+
+	var objectToEncode={
+		myKey:'myValue'
+	};
+	var json = TJSON.encode(objectToEncode, 'fancy');
+	/*
+	{
+		"myKey" : "myValue"
+	}
+	*/
+
+Of course, the encoder can also encode arrays:
+
+	var myArray = [1,32,43,54];
+	var json = TJSON.encode(myArray);
 
 License
 =======
