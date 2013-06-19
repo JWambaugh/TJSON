@@ -47,7 +47,7 @@ Then you can read JSON data with:
 
 It's that easy!
 
-*New in 1.1.0* Encode Haxe objects into a JSON string with:
+**New in 1.1.0** - Encode Haxe objects into a JSON string with:
 
 	var objectToEncode={
 		myKey:'myValue'
