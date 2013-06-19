@@ -11,5 +11,5 @@ cp -r lib/* haxelib/tjson
 #rm  haxelib/firmament/haxedoc.xml.tmp 
 cd haxelib
 zip -r tjson.zip tjson
-haxelib test tjson.zip
+haxelib local tjson.zip
 cd ..

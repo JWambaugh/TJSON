@@ -8,10 +8,12 @@ class TJSON {
 	static var lastSymbolQuoted:Bool; //true if the last symbol was in quotes.
 	static var fileName:String;
 	static var currentLine:Int;
-	static inline var floatRegex = ~/^-?[0-9]*\.[0-9]+$/;
-	static inline var intRegex = ~/^-?[0-9]+$/;
+	static var floatRegex ;
+	static var intRegex ;
 	
 	public static function parse(json:String, ?fileName:String="JSON Data"):Dynamic{
+		floatRegex = ~/^-?[0-9]*\.[0-9]+$/;
+		intRegex = ~/^-?[0-9]+$/;
 		TJSON.json = json;
 		TJSON.fileName = fileName;
 		TJSON.currentLine = 1;
