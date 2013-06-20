@@ -89,7 +89,7 @@ class TestParser extends haxe.unit.TestCase{
 		var jsonString = TJSON.encode(origObj);
 		var generatedObj = TJSON.parse(jsonString);
 		assertEquals('a',Reflect.field(generatedObj,'1'));
-		
+
 		assertEquals('anotherValue',Reflect.field(Reflect.field(generatedObj,'anArray')[0],'anotherKey'));
 
 		//test fancy style
@@ -98,6 +98,15 @@ class TestParser extends haxe.unit.TestCase{
 		assertEquals('a',Reflect.field(generatedObj,'1'));
 		assertEquals('anotherValue',Reflect.field(Reflect.field(generatedObj,'anArray')[0],'anotherKey'));
 
+	}
+
+	public function testCrazyCharacters(){
+		var origObj = {
+			"str":"!@#$%^&*()_+\"'/.,\\;':"
+		}
+		var jsonString = TJSON.encode(origObj);
+		var generatedObj = TJSON.parse(jsonString);
+		assertEquals(origObj.str, generatedObj.str);
 	}
 	
 }

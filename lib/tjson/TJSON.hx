@@ -318,7 +318,7 @@ class TJSON {
 				buffer += value;
 		}
 		else if(Std.is(value,String)){
-			buffer += '"'+value.replace("\\","\\\\").replace("\n","\\n").replace("\r","\\r")+'"';
+			buffer += '"'+value.replace("\\","\\\\").replace("\n","\\n").replace("\r","\\r").replace('"','\\"')+'"';
 		}
 		else if(Std.is(value,Array)){
 			buffer+=encodeArray(value,style,depth+1);
