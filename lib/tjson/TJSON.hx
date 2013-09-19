@@ -324,6 +324,9 @@ class TJSON {
 		else if(Std.is(value,String)){
 			buffer += '"'+Std.string(value).replace("\\","\\\\").replace("\n","\\n").replace("\r","\\r").replace('"','\\"')+'"';
 		}
+		else if(Std.is(value,Bool)){
+			buffer += Std.string(value);
+		}
 		else if(Reflect.isObject(value)){
 			buffer += encodeAnonymousObject(value,style,depth+1);
 		}

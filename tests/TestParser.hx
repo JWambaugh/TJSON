@@ -112,7 +112,27 @@ class TestParser extends haxe.unit.TestCase{
 	public function testChars(){
 		var data = File.getContent('tests/chars.json');
 		var d = TJSON.parse(data);
+		//just making sure it parses without errors
 		assertEquals(1,1);
+	}
+
+	public function testFullCircle2(){
+		var test = tjson.TJSON.parse('{
+		  object : customer,
+		  created : 1378868740,
+		  id : cus_2YAHJPoReA8KA8,
+		  livemode : false,
+		  description : test,
+		  email : null,
+		  "[":"a quoted string"
+		  "{":"A multiline
+		  			string"
+		}');
+		var string1 = tjson.TJSON.encode(test);
+		var data = tjson.TJSON.parse(string1);
+		var string2 = TJSON.encode(data);
+
+		assertEquals(string1,string2);
 	}
 	
 }
