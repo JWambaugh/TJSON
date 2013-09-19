@@ -12,6 +12,7 @@ class TJSON {
 	static var intRegex;
 
 
+
 	/**
 	 * Parses a JSON string into a haxe dynamic object or array.
 	 * @param String - The JSON string to parse
@@ -59,11 +60,11 @@ class TJSON {
 	private static function doParse():Dynamic{
 		//determine if objector array
 		var s = getNextSymbol();
-		if(s=='{'){
+		if(s == '{'){
 			return doObject();
 		}
 
-		if(s=='['){
+		if(s == '['){
 			return doArray();
 		}
 		return null;
@@ -71,11 +72,11 @@ class TJSON {
 
 	private static function doObject():Dynamic{
 		var o:Dynamic = { };
-		var val:Dynamic='';
+		var val:Dynamic ='';
 		var key:String;
-		while((key=getNextSymbol()) != ""){
-			if(key==",")continue;
-			if(key == "}"){
+		while((key = getNextSymbol()) != ""){
+			if(key == "," && !lastSymbolQuoted)continue;
+			if(key == "}" && !lastSymbolQuoted){
 
 				return o;
 			}
@@ -85,9 +86,9 @@ class TJSON {
 			}
 
 			var v = getNextSymbol();
-			if(v=="{"){
+			if(v == "{" && !lastSymbolQuoted){
 				val = doObject();
-			}else if(v=="["){
+			}else if(v == "[" && !lastSymbolQuoted){
 				val = doArray();
 			}else{
 				val = convertSymbolToProperType(v);
@@ -99,18 +100,18 @@ class TJSON {
 	}
 
 	private static function doArray():Dynamic{
-		var a:Array<Dynamic>=new Array<Dynamic>();
+		var a:Array<Dynamic> = new Array<Dynamic>();
 		var val:Dynamic;
 		while((val=getNextSymbol()) != ""){
-			if(val == ','){
+			if(val == ',' && !lastSymbolQuoted){
 				continue;
 			}
-			else if(val == ']'){
+			else if(val == ']' && !lastSymbolQuoted){
 				return a;
 			}
-			else if(val=="{"){
+			else if(val == "{" && !lastSymbolQuoted){
 				val = doObject();
-			}else if(val=="["){
+			}else if(val == "[" && !lastSymbolQuoted){
 				val = doArray();
 			}else{
 				val = convertSymbolToProperType(val);
@@ -128,10 +129,10 @@ class TJSON {
 		if(looksLikeInt(symbol)){
 			return Std.parseInt(symbol);
 		}
-		if(symbol.toLowerCase() =="true"){
+		if(symbol.toLowerCase() == "true"){
 			return true;
 		}
-		if(symbol.toLowerCase() =="false"){
+		if(symbol.toLowerCase() == "false"){
 			return false;
 		}
 		return symbol;
@@ -166,10 +167,10 @@ class TJSON {
 
 		while(pos < json.length){
 			c = json.charAt(pos++);
-			if(c=="\n" && !inSymbol)
+			if(c == "\n" && !inSymbol)
 				currentLine++;
 			if(inLineComment){
-				if(c=="\n" || c=="\r"){
+				if(c == "\n" || c == "\r"){
 					inLineComment = false;
 					pos++;
 				}
@@ -192,19 +193,19 @@ class TJSON {
 						continue;
 					}
 					if(c=="t"){
-						symbol +="\t";
+						symbol += "\t";
 						continue;
 					}
 					if(c=="n"){
-						symbol +="\n";
+						symbol += "\n";
 						continue;
 					}
 					if(c=="\\"){
-						symbol +="\\";
+						symbol += "\\";
 						continue;
 					}
 					if(c=="r"){
-						symbol +="\r";
+						symbol += "\r";
 						continue;
 					}
 
@@ -287,13 +288,13 @@ class TJSON {
 
 	private static function encodeAnonymousObject(obj:Dynamic,style:EncodeStyle,depth:Int):String{
 		var buffer = style.beginObject(depth);
-		var fieldCount=0;
+		var fieldCount = 0;
 		for (field in Reflect.fields(obj)){
-			if(fieldCount++ >0) buffer += style.entrySeperator(depth);
+			if(fieldCount++ > 0) buffer += style.entrySeperator(depth);
 			else buffer += style.firstEntry(depth);
-			var value = Reflect.field(obj,field);
+			var value:Dynamic = Reflect.field(obj,field);
 			buffer += '"'+field+'"'+style.keyValueSeperator(depth);
-			buffer+=encodeValue(value, style, depth);
+			buffer += encodeValue(value, style, depth);
 		}
 		buffer += style.endObject(depth);
 		return buffer;
@@ -301,35 +302,36 @@ class TJSON {
 
 	private static function encodeArray(obj:Dynamic, style:EncodeStyle, depth:Int){
 		var buffer = style.beginArray(depth);
-		var fieldCount=0;
+		var fieldCount = 0;
 		for (value in cast(obj,Array<Dynamic>)){
 			if(fieldCount++ >0) buffer += style.entrySeperator(depth);
 			else buffer += style.firstEntry(depth);
-			buffer+=encodeValue(value, style, depth);
+			buffer += encodeValue(value, style, depth);
 			
 		}
 		buffer += style.endArray(depth);
 		return buffer;
 	}
 
-	private static function encodeValue(value, style:EncodeStyle, depth:Int):String{
+	private static function encodeValue(value:Dynamic, style:EncodeStyle, depth:Int):String{
 		var buffer ="";
 		if(Std.is(value, Int) || Std.is(value,Float)){
-				buffer += value;
-		}
-		else if(Std.is(value,String)){
-			buffer += '"'+value.replace("\\","\\\\").replace("\n","\\n").replace("\r","\\r").replace('"','\\"')+'"';
+				buffer += Std.string(value);
 		}
 		else if(Std.is(value,Array)){
-			buffer+=encodeArray(value,style,depth+1);
+			buffer += encodeArray(value,style,depth+1);
+		}
+		else if(Std.is(value,String)){
+			buffer += '"'+Std.string(value).replace("\\","\\\\").replace("\n","\\n").replace("\r","\\r").replace('"','\\"')+'"';
 		}
 		else if(Reflect.isObject(value)){
-			buffer+=encodeAnonymousObject(value,style,depth+1);
+			buffer += encodeAnonymousObject(value,style,depth+1);
 		}
 		else{
 			throw "Unsupported field type: "+Std.string(value);
 		}
 		return buffer;
+
 	}
 
 	

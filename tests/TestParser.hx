@@ -2,7 +2,7 @@ package ;
 
 import tjson.TJSON;
 
-//import sys.io.File;
+import sys.io.File;
 
 class TestParser extends haxe.unit.TestCase{
 
@@ -102,11 +102,17 @@ class TestParser extends haxe.unit.TestCase{
 
 	public function testCrazyCharacters(){
 		var origObj = {
-			"str":"!@#$%^&*()_+\"'/.,\\;':"
+			"str":"!@#$%^&*()_+\"'/.,\\;':{}"
 		}
 		var jsonString = TJSON.encode(origObj);
 		var generatedObj = TJSON.parse(jsonString);
 		assertEquals(origObj.str, generatedObj.str);
+	}
+
+	public function testChars(){
+		var data = File.getContent('tests/chars.json');
+		var d = TJSON.parse(data);
+		assertEquals(1,1);
 	}
 	
 }
