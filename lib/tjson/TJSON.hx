@@ -379,36 +379,39 @@ class SimpleStyle implements EncodeStyle{
 
 
 class FancyStyle implements EncodeStyle{
-	public function new(){
-
+	public var tab(default, null):String;
+	public function new(tab:String = "    "){
+		this.tab = tab;
+		charTimesNCache = [""];
 	}
 	public function beginObject(depth:Int):String{
 		return "{\n";
 	}
 	public function endObject(depth:Int):String{
-		return "\n"+charTimesN("    ",depth)+"}";
+		return "\n"+charTimesN(depth)+"}";
 	}
 	public function beginArray(depth:Int):String{
 		return "[\n";
 	}
 	public function endArray(depth:Int):String{
-		return "\n"+charTimesN("    ",depth)+"]";
+		return "\n"+charTimesN(depth)+"]";
 	}
 	public function firstEntry(depth:Int):String{
-		return charTimesN("    ",depth+1)+' ';
+		return charTimesN(depth+1)+' ';
 	}
 	public function entrySeperator(depth:Int):String{
-		return "\n"+charTimesN("    ",depth+1)+",";
+		return "\n"+charTimesN(depth+1)+",";
 	}
 	public function keyValueSeperator(depth:Int):String{
 		return " : ";
 	}
-	private function charTimesN(str:String, n:Int):String{
-		var buffer = new StringBuf();
-		for(x in 0...n){
-			buffer.add(str);
+	private var charTimesNCache:Array<String>;
+	private function charTimesN(n:Int):String{
+		return if (n < charTimesNCache.length) {
+			charTimesNCache[n];
+		} else {
+			charTimesNCache[n] = charTimesN(n-1) + tab;
 		}
-		return buffer.toString();
 	}
 	
 }
