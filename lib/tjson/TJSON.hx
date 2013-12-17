@@ -51,8 +51,13 @@ class TJSON {
 			st = new FancyStyle();
 		}
 		else st = new SimpleStyle();
-		if(Std.is(obj,Array)) return encodeArray(obj, st, 0);
-		return encodeAnonymousObject(obj, st, 0);
+		var buffer = new StringBuf();
+		if(Std.is(obj,Array)) {
+			encodeArray(buffer, obj, st, 0);
+		} else {
+			encodeAnonymousObject(buffer, obj, st, 0);
+		}
+		return buffer.toString();
 		
 		 
 	}
@@ -140,18 +145,11 @@ class TJSON {
 
 
 	private static function looksLikeFloat(s:String):Bool{
-		if(floatRegex.match(s)){
-			return true;
-		}
-		return false;
+		return floatRegex.match(s);
 	}
 
 	private static function looksLikeInt(s:String):Bool{
-		
-		if(intRegex.match(s)){
-			return true;
-		}
-		return false;
+		return intRegex.match(s);
 	}
 
 	private static function getNextSymbol(){
@@ -286,55 +284,50 @@ class TJSON {
 		return symbol;
 	}
 
-	private static function encodeAnonymousObject(obj:Dynamic,style:EncodeStyle,depth:Int):String{
-		var buffer = style.beginObject(depth);
+	private static function encodeAnonymousObject(buffer:StringBuf, obj:Dynamic,style:EncodeStyle,depth:Int):Void {
+		buffer.add(style.beginObject(depth));
 		var fieldCount = 0;
 		for (field in Reflect.fields(obj)){
-			if(fieldCount++ > 0) buffer += style.entrySeperator(depth);
-			else buffer += style.firstEntry(depth);
+			if(fieldCount++ > 0) buffer.add(style.entrySeperator(depth));
+			else buffer.add(style.firstEntry(depth));
 			var value:Dynamic = Reflect.field(obj,field);
-			buffer += '"'+field+'"'+style.keyValueSeperator(depth);
-			buffer += encodeValue(value, style, depth);
+			buffer.add('"'+field+'"'+style.keyValueSeperator(depth));
+			encodeValue(buffer, value, style, depth);
 		}
-		buffer += style.endObject(depth);
-		return buffer;
+		buffer.add(style.endObject(depth));
 	}
 
-	private static function encodeArray(obj:Dynamic, style:EncodeStyle, depth:Int){
-		var buffer = style.beginArray(depth);
+	private static function encodeArray(buffer:StringBuf, obj:Array<Dynamic>, style:EncodeStyle, depth:Int):Void {
+		buffer.add(style.beginArray(depth));
 		var fieldCount = 0;
-		for (value in cast(obj,Array<Dynamic>)){
-			if(fieldCount++ >0) buffer += style.entrySeperator(depth);
-			else buffer += style.firstEntry(depth);
-			buffer += encodeValue(value, style, depth);
+		for (value in obj){
+			if(fieldCount++ >0) buffer.add(style.entrySeperator(depth));
+			else buffer.add(style.firstEntry(depth));
+			encodeValue(buffer, value, style, depth);
 			
 		}
-		buffer += style.endArray(depth);
-		return buffer;
+		buffer.add(style.endArray(depth));
 	}
 
-	private static function encodeValue(value:Dynamic, style:EncodeStyle, depth:Int):String{
-		var buffer ="";
+	private static function encodeValue(buffer:StringBuf, value:Dynamic, style:EncodeStyle, depth:Int):Void {
 		if(Std.is(value, Int) || Std.is(value,Float)){
-				buffer += Std.string(value);
+				buffer.add(value);
 		}
 		else if(Std.is(value,Array)){
-			buffer += encodeArray(value,style,depth+1);
+			encodeArray(buffer,value,style,depth+1);
 		}
 		else if(Std.is(value,String)){
-			buffer += '"'+Std.string(value).replace("\\","\\\\").replace("\n","\\n").replace("\r","\\r").replace('"','\\"')+'"';
+			buffer.add('"'+Std.string(value).replace("\\","\\\\").replace("\n","\\n").replace("\r","\\r").replace('"','\\"')+'"');
 		}
 		else if(Std.is(value,Bool)){
-			buffer += Std.string(value);
+			buffer.add(value);
 		}
 		else if(Reflect.isObject(value)){
-			buffer += encodeAnonymousObject(value,style,depth+1);
+			encodeAnonymousObject(buffer,value,style,depth+1);
 		}
 		else{
 			throw "Unsupported field type: "+Std.string(value);
 		}
-		return buffer;
-
 	}
 
 	
@@ -411,11 +404,11 @@ class FancyStyle implements EncodeStyle{
 		return " : ";
 	}
 	private function charTimesN(str:String, n:Int):String{
-		var buffer='';
+		var buffer = new StringBuf();
 		for(x in 0...n){
-			buffer+=str;
+			buffer.add(str);
 		}
-		return buffer;
+		return buffer.toString();
 	}
 	
 }
