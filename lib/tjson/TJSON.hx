@@ -11,20 +11,21 @@ class TJSON {
 	static var floatRegex;
 	static var intRegex;
 
-
+	static var strProcessor:String->Dynamic;
 
 	/**
 	 * Parses a JSON string into a haxe dynamic object or array.
 	 * @param String - The JSON string to parse
 	 * @param String the file name to whic the JSON code belongs. Used for generating nice error messages.
 	 */
-	public static function parse(json:String, ?fileName:String="JSON Data"):Dynamic{
+	public static function parse(json:String, ?fileName:String="JSON Data", ?stringProcessor:String->Dynamic = null):Dynamic{
 		floatRegex = ~/^-?[0-9]*\.[0-9]+$/;
 		intRegex = ~/^-?[0-9]+$/;
 		TJSON.json = json;
 		TJSON.fileName = fileName;
 		TJSON.currentLine = 1;
 		pos = 0;
+		strProcessor = (stringProcessor==null? defaultStringProcessor : stringProcessor);
 		
 		try{
 			return doParse();
@@ -60,6 +61,10 @@ class TJSON {
 		return buffer.toString();
 		
 		 
+	}
+
+	private static function defaultStringProcessor(str:String):Dynamic{
+		return str;
 	}
 
 	private static function doParse():Dynamic{

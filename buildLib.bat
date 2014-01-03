@@ -5,5 +5,5 @@ mkdir haxelib\tjson
 xcopy  lib\*.* haxelib\tjson /e /y
 cd haxelib
 winrar.exe a -afzip tjson.zip tjson
-haxelib test tjson.zip
+haxelib install tjson.zip
 cd ..
