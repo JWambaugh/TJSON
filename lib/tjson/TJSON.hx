@@ -302,7 +302,7 @@ class TJSON {
 		buffer.add(style.endObject(depth));
 	}
 
-	private static function encodeArray(buffer:StringBuf, obj:Array<Dynamic>, style:EncodeStyle, depth:Int):Void {
+	private static function encodeArray(buffer:StringBuf, obj:Iterator<Dynamic>, style:EncodeStyle, depth:Int):Void {
 		buffer.add(style.beginArray(depth));
 		var fieldCount = 0;
 		for (value in obj){
@@ -319,7 +319,12 @@ class TJSON {
 				buffer.add(value);
 		}
 		else if(Std.is(value,Array)){
-			encodeArray(buffer,value,style,depth+1);
+			var v: Array<Dynamic> = value;
+			encodeArray(buffer,v.iterator(),style,depth+1);
+		}
+		else if(Std.is(value,List)){
+			var v: List<Dynamic> = value;
+			encodeArray(buffer,v.iterator(),style,depth+1);
 		}
 		else if(Std.is(value,String)){
 			buffer.add('"'+Std.string(value).replace("\\","\\\\").replace("\n","\\n").replace("\r","\\r").replace('"','\\"')+'"');
