@@ -65,8 +65,22 @@ class TestParser extends haxe.unit.TestCase{
 	public function testEncodeObject(){
 		assertEquals('{"key2":{"anotherKey":"another\\nValue"},"key":"value"}',TJSON.encode({key:'value',key2:{anotherKey:"another\nValue"}}));
 	}
+	
 	public function testEncodeArray(){
 		assertEquals('[1,2,3,4,[10,10,{"myKey":"My\\nValue"}]]',TJSON.encode([1,2,3,4,[10,10,{myKey:"My\nValue"}]]));
+	}
+
+	public function testEncodeList(){
+		var list = new List<Dynamic>();
+		list.add("test");
+		list.add({key:'myObject',intval:31});
+		list.add([1,2,3,4]);
+		var sublist = new List<Dynamic>();
+		sublist.add(1);
+		sublist.add("two");
+		sublist.add(new List<Dynamic>());
+		list.add(sublist);
+		assertEquals('["test",{"key":"myObject","intval":31},[1,2,3,4],[1,"two",[]]]',TJSON.encode(list));
 	}
 
 	public function testFullCircleObject(){

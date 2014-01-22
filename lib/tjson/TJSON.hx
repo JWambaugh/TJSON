@@ -53,8 +53,8 @@ class TJSON {
 		}
 		else st = new SimpleStyle();
 		var buffer = new StringBuf();
-		if(Std.is(obj,Array)) {
-			encodeArray(buffer, obj, st, 0);
+		if(Std.is(obj,Array) || Std.is(obj,List)) {
+			encodeIterable(buffer, obj, st, 0);
 		} else {
 			encodeAnonymousObject(buffer, obj, st, 0);
 		}
@@ -302,7 +302,7 @@ class TJSON {
 		buffer.add(style.endObject(depth));
 	}
 
-	private static function encodeArray(buffer:StringBuf, obj:Iterator<Dynamic>, style:EncodeStyle, depth:Int):Void {
+	private static function encodeIterable(buffer:StringBuf, obj:Iterable<Dynamic>, style:EncodeStyle, depth:Int):Void {
 		buffer.add(style.beginArray(depth));
 		var fieldCount = 0;
 		for (value in obj){
@@ -318,13 +318,13 @@ class TJSON {
 		if(Std.is(value, Int) || Std.is(value,Float)){
 				buffer.add(value);
 		}
-		else if(Std.is(value,Array)){
+		else if(Std.is(value,Array) || Std.is(value,List)){
 			var v: Array<Dynamic> = value;
-			encodeArray(buffer,v.iterator(),style,depth+1);
+			encodeIterable(buffer,v,style,depth+1);
 		}
 		else if(Std.is(value,List)){
 			var v: List<Dynamic> = value;
-			encodeArray(buffer,v.iterator(),style,depth+1);
+			encodeIterable(buffer,v,style,depth+1);
 		}
 		else if(Std.is(value,String)){
 			buffer.add('"'+Std.string(value).replace("\\","\\\\").replace("\n","\\n").replace("\r","\\r").replace('"','\\"')+'"');
