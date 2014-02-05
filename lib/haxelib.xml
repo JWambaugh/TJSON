@@ -8,5 +8,5 @@
     <tag v="js"/>
     <tag v="cross"/>
     <description>Tolerant JSON parser and encoder. Unserializes and serializes JSON data, but without all the strictness of standard JSON parsers. Supports multi and single-line comments, keys without quotes, and single quotes.</description>
-    <version name="1.2.0">Support for encoding haxe lists</version>
+    <version name="1.2.1">Fixed bug when reading escaped solidus</version>
 </project>
