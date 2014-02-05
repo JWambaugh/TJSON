@@ -211,6 +211,10 @@ class TJSON {
 						symbol += "\r";
 						continue;
 					}
+					if(c=="/"){
+						symbol += "/";
+						continue;
+					}
 
 					throw "Invalid escape sequence '\\"+c+"'";
 				}else{

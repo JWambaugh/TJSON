@@ -43,7 +43,7 @@ class TestParser extends haxe.unit.TestCase{
 					]
 				,boolValue: true
 				,"falseValue": false
-
+				,"test":"\\/blah"
 
 
 
