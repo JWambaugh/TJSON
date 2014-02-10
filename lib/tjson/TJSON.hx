@@ -55,6 +55,8 @@ class TJSON {
 		var buffer = new StringBuf();
 		if(Std.is(obj,Array)) {
 			encodeArray(buffer, obj, st, 0);
+		} else if(Std.is(obj, haxe.ds.StringMap)){
+			encodeMap(buffer, obj, st, 0);
 		} else {
 			encodeAnonymousObject(buffer, obj, st, 0);
 		}
@@ -302,6 +304,19 @@ class TJSON {
 		buffer.add(style.endObject(depth));
 	}
 
+	private static function encodeMap(buffer:StringBuf, obj:Map<Dynamic, Dynamic>,style:EncodeStyle,depth:Int):Void {
+		buffer.add(style.beginObject(depth));
+		var fieldCount = 0;
+		for (field in obj.keys()){
+			if(fieldCount++ > 0) buffer.add(style.entrySeperator(depth));
+			else buffer.add(style.firstEntry(depth));
+			var value:Dynamic = obj.get(field);
+			buffer.add('"'+field+'"'+style.keyValueSeperator(depth));
+			encodeValue(buffer, value, style, depth);
+		}
+		buffer.add(style.endObject(depth));
+	}
+
 	private static function encodeArray(buffer:StringBuf, obj:Iterator<Dynamic>, style:EncodeStyle, depth:Int):Void {
 		buffer.add(style.beginArray(depth));
 		var fieldCount = 0;
@@ -325,6 +340,9 @@ class TJSON {
 		else if(Std.is(value,List)){
 			var v: List<Dynamic> = value;
 			encodeArray(buffer,v.iterator(),style,depth+1);
+		}
+		else if(Std.is(value,haxe.ds.StringMap)){
+			encodeMap(buffer,value,style,depth+1);
 		}
 		else if(Std.is(value,String)){
 			buffer.add('"'+Std.string(value).replace("\\","\\\\").replace("\n","\\n").replace("\r","\\r").replace('"','\\"')+'"');
