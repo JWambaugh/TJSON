@@ -68,6 +68,10 @@ class TestParser extends haxe.unit.TestCase{
 	public function testEncodeArray(){
 		assertEquals('[1,2,3,4,[10,10,{"myKey":"My\\nValue"}]]',TJSON.encode([1,2,3,4,[10,10,{myKey:"My\nValue"}]]));
 	}
+	public function testEncodeMap(){
+		assertEquals('{"key":{"newKey":"value"},"key2":{"anotherKey":"another\\nValue"}}',
+		    TJSON.encode([ "key" => [ "newKey" => "value" ], "key2" => [ "anotherKey" => "another\nValue" ] ]));
+	}
 
 	public function testFullCircleObject(){
 		var origObj={
