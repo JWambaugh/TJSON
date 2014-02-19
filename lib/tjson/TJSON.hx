@@ -53,8 +53,8 @@ class TJSON {
 		}
 		else st = new SimpleStyle();
 		var buffer = new StringBuf();
-		if(Std.is(obj,Array)) {
-			encodeArray(buffer, obj, st, 0);
+		if(Std.is(obj,Array) || Std.is(obj,List)) {
+			encodeIterable(buffer, obj, st, 0);
 		} else if(Std.is(obj, haxe.ds.StringMap)){
 			encodeMap(buffer, obj, st, 0);
 		} else {
@@ -213,6 +213,33 @@ class TJSON {
 						symbol += "\r";
 						continue;
 					}
+					if(c=="/"){
+						symbol += "/";
+						continue;
+					}
+					if(c=="u"){
+                        var hexValue = 0;
+
+                        for (i in 0...4){
+                            if (pos >= json.length)
+                              throw "Unfinished UTF8 character";
+			                var nc = json.charCodeAt(pos++);
+                            hexValue = hexValue << 4;
+                            if (nc >= 48 && nc <= 57) // 0..9
+                              hexValue += nc - 48;
+                            else if (nc >= 65 && nc <= 70) // A..F
+                              hexValue += 10 + nc - 65;
+                            else if (nc >= 97 && nc <= 102) // a..f
+                              hexValue += 10 + nc - 95;
+                            else throw "Not a hex digit";
+                        }
+                        
+						var utf = new haxe.Utf8();
+						utf.addChar(hexValue);
+						symbol += utf.toString();
+                        
+						continue;
+					}
 
 					throw "Invalid escape sequence '\\"+c+"'";
 				}else{
@@ -317,7 +344,7 @@ class TJSON {
 		buffer.add(style.endObject(depth));
 	}
 
-	private static function encodeArray(buffer:StringBuf, obj:Iterator<Dynamic>, style:EncodeStyle, depth:Int):Void {
+	private static function encodeIterable(buffer:StringBuf, obj:Iterable<Dynamic>, style:EncodeStyle, depth:Int):Void {
 		buffer.add(style.beginArray(depth));
 		var fieldCount = 0;
 		for (value in obj){
@@ -333,13 +360,13 @@ class TJSON {
 		if(Std.is(value, Int) || Std.is(value,Float)){
 				buffer.add(value);
 		}
-		else if(Std.is(value,Array)){
+		else if(Std.is(value,Array) || Std.is(value,List)){
 			var v: Array<Dynamic> = value;
-			encodeArray(buffer,v.iterator(),style,depth+1);
+			encodeIterable(buffer,v,style,depth+1);
 		}
 		else if(Std.is(value,List)){
 			var v: List<Dynamic> = value;
-			encodeArray(buffer,v.iterator(),style,depth+1);
+			encodeIterable(buffer,v,style,depth+1);
 		}
 		else if(Std.is(value,haxe.ds.StringMap)){
 			encodeMap(buffer,value,style,depth+1);

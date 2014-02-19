@@ -43,6 +43,7 @@ class TestParser extends haxe.unit.TestCase{
 					]
 				,boolValue: true
 				,"falseValue": false
+                ,"utf":"\\u0410\\u0411\\u0412\\u0413\\u0414 \\u0430\\u0431\\u0432\\u0433\\u0434"
 
 
 
@@ -60,6 +61,7 @@ class TestParser extends haxe.unit.TestCase{
 		assertEquals("aValue2",o.arrayWithObj[1].key2);
 		assertEquals(true,o.boolValue);
 		assertEquals(false,o.falseValue);
+		assertEquals("АБВГД абвгд",o.utf);
 	}
 
 	public function testEncodeObject(){
@@ -112,6 +114,12 @@ class TestParser extends haxe.unit.TestCase{
 		var generatedObj = TJSON.parse(jsonString);
 		assertEquals(origObj.str, generatedObj.str);
 	}
+
+    public function testUtf8Chars(){
+      var s = '{"str":"\\u0410\\u0411\\u0412\\u0413\\u0414 \\u0430\\u0431\\u0432\\u0433\\u0434"}';
+      var o = TJSON.parse(s);
+      assertEquals(o.str, "АБВГД абвгд");
+    }
 
 	public function testChars(){
 		var data = File.getContent('tests/chars.json');
