@@ -55,6 +55,9 @@ class TJSON {
 		var buffer = new StringBuf();
 		if(Std.is(obj,Array) || Std.is(obj,List)) {
 			encodeIterable(buffer, obj, st, 0);
+
+		} else if(Std.is(obj, haxe.ds.StringMap)){
+			encodeMap(buffer, obj, st, 0);
 		} else {
 			encodeAnonymousObject(buffer, obj, st, 0);
 		}
@@ -216,6 +219,31 @@ class TJSON {
 						continue;
 					}
 
+					if(c=="u"){
+                        var hexValue = 0;
+
+                        for (i in 0...4){
+                            if (pos >= json.length)
+                              throw "Unfinished UTF8 character";
+			                var nc = json.charCodeAt(pos++);
+                            hexValue = hexValue << 4;
+                            if (nc >= 48 && nc <= 57) // 0..9
+                              hexValue += nc - 48;
+                            else if (nc >= 65 && nc <= 70) // A..F
+                              hexValue += 10 + nc - 65;
+                            else if (nc >= 97 && nc <= 102) // a..f
+                              hexValue += 10 + nc - 95;
+                            else throw "Not a hex digit";
+                        }
+                        
+						var utf = new haxe.Utf8();
+						utf.addChar(hexValue);
+						symbol += utf.toString();
+                        
+						continue;
+					}
+
+
 					throw "Invalid escape sequence '\\"+c+"'";
 				}else{
 					if(c == "\\"){
@@ -306,6 +334,21 @@ class TJSON {
 		buffer.add(style.endObject(depth));
 	}
 
+
+	private static function encodeMap(buffer:StringBuf, obj:Map<Dynamic, Dynamic>,style:EncodeStyle,depth:Int):Void {
+		buffer.add(style.beginObject(depth));
+		var fieldCount = 0;
+		for (field in obj.keys()){
+			if(fieldCount++ > 0) buffer.add(style.entrySeperator(depth));
+			else buffer.add(style.firstEntry(depth));
+			var value:Dynamic = obj.get(field);
+			buffer.add('"'+field+'"'+style.keyValueSeperator(depth));
+			encodeValue(buffer, value, style, depth);
+		}
+		buffer.add(style.endObject(depth));
+	}
+
+
 	private static function encodeIterable(buffer:StringBuf, obj:Iterable<Dynamic>, style:EncodeStyle, depth:Int):Void {
 		buffer.add(style.beginArray(depth));
 		var fieldCount = 0;
@@ -329,6 +372,11 @@ class TJSON {
 		else if(Std.is(value,List)){
 			var v: List<Dynamic> = value;
 			encodeIterable(buffer,v,style,depth+1);
+
+		}
+		else if(Std.is(value,haxe.ds.StringMap)){
+			encodeMap(buffer,value,style,depth+1);
+
 		}
 		else if(Std.is(value,String)){
 			buffer.add('"'+Std.string(value).replace("\\","\\\\").replace("\n","\\n").replace("\r","\\r").replace('"','\\"')+'"');
