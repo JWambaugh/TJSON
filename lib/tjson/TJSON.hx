@@ -324,7 +324,14 @@ class TJSON {
 	private static function encodeAnonymousObject(buffer:StringBuf, obj:Dynamic,style:EncodeStyle,depth:Int):Void {
 		buffer.add(style.beginObject(depth));
 		var fieldCount = 0;
-		for (field in Reflect.fields(obj)){
+		var fields:Array<String>;
+		var cls = Type.getClass(obj);
+		if (cls != null) {
+			fields = Type.getInstanceFields(cls);
+		} else {
+			fields = Reflect.fields(obj);
+		}
+		for (field in fields){
 			if(fieldCount++ > 0) buffer.add(style.entrySeperator(depth));
 			else buffer.add(style.firstEntry(depth));
 			var value:Dynamic = Reflect.field(obj,field);
