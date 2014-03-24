@@ -4,8 +4,8 @@
   "tags": ["json","tjson","tolerant","javascript","parser","js","cross"],
   "description": "Tolerant JSON parser and encoder. Unserializes and serializes JSON data, but without all the strictness of standard JSON parsers. Supports multi and single-line comments, keys without quotes, and single quotes.",
   "contributors": ["martamius"],
-  "releasenote": "Fixed bug when reading escaped solidus",
-  "version": "1.2.1",
+  "releasenote": "Bug fixes",
+  "version": "1.2.2",
   "url": "https://github.com/martamius/TJSON",
   "dependencies": {
 

@@ -59,7 +59,7 @@ class TJSON {
 		} else if(Std.is(obj, haxe.ds.StringMap)){
 			encodeMap(buffer, obj, st, 0);
 		} else {
-			encodeAnonymousObject(buffer, obj, st, 0);
+			encodeObject(buffer, obj, st, 0);
 		}
 		return buffer.toString();
 		
@@ -87,7 +87,8 @@ class TJSON {
 		var o:Dynamic = { };
 		var val:Dynamic ='';
 		var key:String;
-		while((key = getNextSymbol()) != ""){
+		while(pos < json.length){
+			key=getNextSymbol();
 			if(key == "," && !lastSymbolQuoted)continue;
 			if(key == "}" && !lastSymbolQuoted){
 
@@ -115,7 +116,8 @@ class TJSON {
 	private static function doArray():Dynamic{
 		var a:Array<Dynamic> = new Array<Dynamic>();
 		var val:Dynamic;
-		while((val=getNextSymbol()) != ""){
+		while(pos < json.length){
+			val=getNextSymbol();
 			if(val == ',' && !lastSymbolQuoted){
 				continue;
 			}
@@ -321,7 +323,7 @@ class TJSON {
 		return symbol;
 	}
 
-	private static function encodeAnonymousObject(buffer:StringBuf, obj:Dynamic,style:EncodeStyle,depth:Int):Void {
+	private static function encodeObject(buffer:StringBuf, obj:Dynamic,style:EncodeStyle,depth:Int):Void {
 		buffer.add(style.beginObject(depth));
 		var fieldCount = 0;
 		var fields:Array<String>;
@@ -392,7 +394,7 @@ class TJSON {
 			buffer.add(value);
 		}
 		else if(Reflect.isObject(value)){
-			encodeAnonymousObject(buffer,value,style,depth+1);
+			encodeObject(buffer,value,style,depth+1);
 		}
 		else{
 			throw "Unsupported field type: "+Std.string(value);

@@ -47,7 +47,10 @@ class TestParser extends haxe.unit.TestCase{
 				,"test":"\\/blah"
 
                 ,"utf":"\\u0410\\u0411\\u0412\\u0413\\u0414 \\u0430\\u0431\\u0432\\u0433\\u0434"
-
+                ,"arrayWithEmptyString":[
+                	"test1"
+                	,""
+                ]
 
 
 
