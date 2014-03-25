@@ -173,7 +173,7 @@ class TestParser extends haxe.unit.TestCase{
 		assertEquals('{"non-null":"null","nullVal":null,"array":[null,1]}',data);
 		
 		var obj2= TJSON.parse('{"nullVal":null ,"non-null":"null","array":[null,1]}');
-		var data2:String = TJSON.encode(obj);
+		var data2:String = TJSON.encode(obj2);
 		assertEquals('{"non-null":"null","nullVal":null,"array":[null,1]}',data2);
 	}
 	
