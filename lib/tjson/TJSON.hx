@@ -150,6 +150,9 @@ class TJSON {
 		if(symbol.toLowerCase() == "false"){
 			return false;
 		}
+		if(symbol.toLowerCase() == "null"){
+			return null;
+		}
 		return symbol;
 	}
 
@@ -395,6 +398,9 @@ class TJSON {
 		}
 		else if(Reflect.isObject(value)){
 			encodeObject(buffer,value,style,depth+1);
+		}
+		else if(value == null){
+			buffer.add("null");
 		}
 		else{
 			throw "Unsupported field type: "+Std.string(value);
