@@ -3,15 +3,26 @@ package tjson;
 using StringTools;
 class TJSON {
 
-	static var pos:Int;
-	static var json:String;
-	static var lastSymbolQuoted:Bool; //true if the last symbol was in quotes.
-	static var fileName:String;
-	static var currentLine:Int;
+	var pos:Int;
+	var json:String;
+	var lastSymbolQuoted:Bool; //true if the last symbol was in quotes.
+    public var fileName:String;
+	public var currentLine:Int;
 	static var floatRegex;
 	static var intRegex;
 
-	static var strProcessor:String->Dynamic;
+	var strProcessor:String->Dynamic;
+
+
+    public function new(vjson:String, ?vfileName:String="JSON Data", ?stringProcessor:String->Dynamic = null)
+      {
+		json = vjson;
+		fileName = vfileName;
+		currentLine = 1;
+        lastSymbolQuoted = false;
+		pos = 0;
+		strProcessor = (stringProcessor==null? defaultStringProcessor : stringProcessor);
+      }
 
 	/**
 	 * Parses a JSON string into a haxe dynamic object or array.
@@ -21,16 +32,13 @@ class TJSON {
 	public static function parse(json:String, ?fileName:String="JSON Data", ?stringProcessor:String->Dynamic = null):Dynamic{
 		floatRegex = ~/^-?[0-9]*\.[0-9]+$/;
 		intRegex = ~/^-?[0-9]+$/;
-		TJSON.json = json;
-		TJSON.fileName = fileName;
-		TJSON.currentLine = 1;
-		pos = 0;
-		strProcessor = (stringProcessor==null? defaultStringProcessor : stringProcessor);
+
+        var t = new TJSON(json, fileName, stringProcessor);
 		
 		try{
-			return doParse();
+			return t.doParse();
 		}catch(e:String){
-			throw fileName+" on line "+currentLine+": "+e;
+			throw t.fileName + " on line " + t.currentLine + ": " + e;
 		}
 		return null;
 	}
@@ -69,7 +77,7 @@ class TJSON {
 		return str;
 	}
 
-	private static function doParse():Dynamic{
+	private function doParse():Dynamic{
 		//determine if objector array
 		var s = getNextSymbol();
 		if(s == '{'){
@@ -82,7 +90,7 @@ class TJSON {
 		return null;
 	}
 
-	private static function doObject():Dynamic{
+	private function doObject():Dynamic{
 		var o:Dynamic = { };
 		var val:Dynamic ='';
 		var key:String;
@@ -111,7 +119,7 @@ class TJSON {
 		
 	}
 
-	private static function doArray():Dynamic{
+	private function doArray():Dynamic{
 		var a:Array<Dynamic> = new Array<Dynamic>();
 		var val:Dynamic;
 		while((val=getNextSymbol()) != ""){
@@ -133,7 +141,7 @@ class TJSON {
 		throw "Unexpected end of file. Expected ']'";
 	}
 
-	private static function convertSymbolToProperType(symbol):Dynamic{
+	private function convertSymbolToProperType(symbol):Dynamic{
 		if(lastSymbolQuoted) return symbol; //things is quotes are always strings
 		if(looksLikeFloat(symbol)){
 			return Std.parseFloat(symbol);
@@ -159,7 +167,7 @@ class TJSON {
 		return intRegex.match(s);
 	}
 
-	private static function getNextSymbol(){
+	private function getNextSymbol(){
 		lastSymbolQuoted=false;
 		var c:String = '';
 		var inQuote:Bool = false;
