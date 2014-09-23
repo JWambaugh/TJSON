@@ -8,7 +8,7 @@ class ChildClass{
 	public var myvar:String;
 	private var parent:TestClass;
 	public function new(parent:TestClass){
-		this.parent = parent;
+		//this.parent = parent;
 		myvar = "this works";
 	}
 }

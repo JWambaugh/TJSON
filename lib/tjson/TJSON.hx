@@ -1,28 +1,8 @@
 
 package tjson;
 using StringTools;
-class TJSON {
 
-	var pos:Int;
-	var json:String;
-	var lastSymbolQuoted:Bool; //true if the last symbol was in quotes.
-    public var fileName:String;
-	public var currentLine:Int;
-	static var floatRegex;
-	static var intRegex;
-
-	var strProcessor:String->Dynamic;
-
-
-    public function new(vjson:String, ?vfileName:String="JSON Data", ?stringProcessor:String->Dynamic = null)
-      {
-		json = vjson;
-		fileName = vfileName;
-		currentLine = 1;
-        lastSymbolQuoted = false;
-		pos = 0;
-		strProcessor = (stringProcessor==null? defaultStringProcessor : stringProcessor);
-      }
+class TJSON {    
 
 	/**
 	 * Parses a JSON string into a haxe dynamic object or array.
@@ -30,17 +10,8 @@ class TJSON {
 	 * @param String the file name to whic the JSON code belongs. Used for generating nice error messages.
 	 */
 	public static function parse(json:String, ?fileName:String="JSON Data", ?stringProcessor:String->Dynamic = null):Dynamic{
-		floatRegex = ~/^-?[0-9]*\.[0-9]+$/;
-		intRegex = ~/^-?[0-9]+$/;
-
-        var t = new TJSON(json, fileName, stringProcessor);
-		
-		try{
-			return t.doParse();
-		}catch(e:String){
-			throw t.fileName + " on line " + t.currentLine + ": " + e;
-		}
-		return null;
+        var t = new TJSONSerializer(json, fileName, stringProcessor);
+		return t.doParse();
 	}
 
 	/**
@@ -49,46 +20,50 @@ class TJSON {
 	 * @param Dynamic - The style to use. Either an object implementing EncodeStyle interface or the strings 'fancy' or 'simple'.
 	 */
 	public static function encode(obj:Dynamic, ?style:Dynamic=null):String{
-
-		if(!Reflect.isObject(obj)){
-			throw("Provided object is not an object.");
-		}
-		var st:EncodeStyle;
-		if(Std.is(style, EncodeStyle)){
-			st = style;
-		}
-		else if(style == 'fancy'){
-			st = new FancyStyle();
-		}
-		else st = new SimpleStyle();
-		var buffer = new StringBuf();
-		if(Std.is(obj,Array) || Std.is(obj,List)) {
-			buffer.add(encodeIterable( obj, st, 0));
-
-		} else if(Std.is(obj, haxe.ds.StringMap)){
-			buffer.add(encodeMap(obj, st, 0));
-		} else {
-
-			buffer.add(encodeObject(obj, st, 0));
-		}
-		return buffer.toString();
-		
-		 
+		var t = new TJSONEncoder();
+		return t.doEncode(obj,style);
 	}
 
-	private static function defaultStringProcessor(str:String):Dynamic{
-		return str;
-	}
 
-	private function doParse():Dynamic{
-		//determine if objector array
-		var s = getNextSymbol();
-		if(s == '{'){
-			return doObject();
-		}
+}
 
-		if(s == '['){
-			return doArray();
+
+class TJSONSerializer{
+	var pos:Int;
+	var json:String;
+	var lastSymbolQuoted:Bool; //true if the last symbol was in quotes.
+    var fileName:String;
+	var currentLine:Int;
+	var floatRegex:EReg;
+	var intRegex:EReg;
+	var strProcessor:String->Dynamic;
+
+
+	public function new(vjson:String, ?vfileName:String="JSON Data", ?stringProcessor:String->Dynamic = null)
+    {
+		json = vjson;
+		fileName = vfileName;
+		currentLine = 1;
+        lastSymbolQuoted = false;
+		pos = 0;
+		floatRegex = ~/^-?[0-9]*\.[0-9]+$/;
+		intRegex = ~/^-?[0-9]+$/;	
+		strProcessor = (stringProcessor==null? defaultStringProcessor : stringProcessor);
+    }
+
+    public function doParse():Dynamic{
+    	try{
+			//determine if objector array
+			var s = getNextSymbol();
+			if(s == '{'){
+				return doObject();
+			}
+
+			if(s == '['){
+				return doArray();
+			}
+		}catch(e:String){
+			throw fileName + " on line " + currentLine + ": " + e;
 		}
 		return null;
 	}
@@ -175,11 +150,11 @@ class TJSON {
 	}
 
 
-	private static function looksLikeFloat(s:String):Bool{
+	private function looksLikeFloat(s:String):Bool{
 		return floatRegex.match(s);
 	}
 
-	private static function looksLikeInt(s:String):Bool{
+	private function looksLikeInt(s:String):Bool{
 		return intRegex.match(s);
 	}
 
@@ -344,7 +319,44 @@ class TJSON {
 		return symbol;
 	}
 
-	private static function encodeObject( obj:Dynamic,style:EncodeStyle,depth:Int):String {
+
+	private function defaultStringProcessor(str:String):Dynamic{
+		return str;
+	}
+}
+
+
+class TJSONEncoder{
+	public function new(){
+
+	}
+
+	public function doEncode(obj:Dynamic, ?style:Dynamic=null){
+		if(!Reflect.isObject(obj)){
+			throw("Provided object is not an object.");
+		}
+		var st:EncodeStyle;
+		if(Std.is(style, EncodeStyle)){
+			st = style;
+		}
+		else if(style == 'fancy'){
+			st = new FancyStyle();
+		}
+		else st = new SimpleStyle();
+		var buffer = new StringBuf();
+		if(Std.is(obj,Array) || Std.is(obj,List)) {
+			buffer.add(encodeIterable( obj, st, 0));
+
+		} else if(Std.is(obj, haxe.ds.StringMap)){
+			buffer.add(encodeMap(obj, st, 0));
+		} else {
+
+			buffer.add(encodeObject(obj, st, 0));
+		}
+		return buffer.toString();
+	}
+
+	private function encodeObject( obj:Dynamic,style:EncodeStyle,depth:Int):String {
 		var buffer = new StringBuf();
 		buffer.add(style.beginObject(depth));
 		var fieldCount = 0;
@@ -385,7 +397,7 @@ class TJSON {
 	}
 
 
-	private static function encodeMap( obj:Map<Dynamic, Dynamic>,style:EncodeStyle,depth:Int):String {
+	private function encodeMap( obj:Map<Dynamic, Dynamic>,style:EncodeStyle,depth:Int):String {
 		var buffer = new StringBuf();
 		buffer.add(style.beginObject(depth));
 		var fieldCount = 0;
@@ -401,7 +413,7 @@ class TJSON {
 	}
 
 
-	private static function encodeIterable(obj:Iterable<Dynamic>, style:EncodeStyle, depth:Int):String {
+	private function encodeIterable(obj:Iterable<Dynamic>, style:EncodeStyle, depth:Int):String {
 		var buffer = new StringBuf();
 		buffer.add(style.beginArray(depth));
 		var fieldCount = 0;
@@ -415,7 +427,7 @@ class TJSON {
 		return buffer.toString();
 	}
 
-	private static function encodeValue( value:Dynamic, style:EncodeStyle, depth:Int):String {
+	private function encodeValue( value:Dynamic, style:EncodeStyle, depth:Int):String {
 		if(Std.is(value, Int) || Std.is(value,Float)){
 				return(value);
 		}
@@ -449,11 +461,7 @@ class TJSON {
 		}
 	}
 
-	
-
-
 }
-
 
 
 interface EncodeStyle{
