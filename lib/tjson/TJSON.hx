@@ -41,6 +41,7 @@ class TJSON {
 	 * @param Dynamic - The style to use. Either an object implementing EncodeStyle interface or the strings 'fancy' or 'simple'.
 	 */
 	public static function encode(obj:Dynamic, ?style:Dynamic=null):String{
+
 		if(!Reflect.isObject(obj)){
 			throw("Provided object is not an object.");
 		}
@@ -54,12 +55,13 @@ class TJSON {
 		else st = new SimpleStyle();
 		var buffer = new StringBuf();
 		if(Std.is(obj,Array) || Std.is(obj,List)) {
-			encodeIterable(buffer, obj, st, 0);
+			buffer.add(encodeIterable( obj, st, 0));
 
 		} else if(Std.is(obj, haxe.ds.StringMap)){
-			encodeMap(buffer, obj, st, 0);
+			buffer.add(encodeMap(obj, st, 0));
 		} else {
-			encodeObject(buffer, obj, st, 0);
+
+			buffer.add(encodeObject(obj, st, 0));
 		}
 		return buffer.toString();
 		
@@ -91,15 +93,23 @@ class TJSON {
 			key=getNextSymbol();
 			if(key == "," && !lastSymbolQuoted)continue;
 			if(key == "}" && !lastSymbolQuoted){
-
 				return o;
 			}
+
 			var seperator = getNextSymbol();
 			if(seperator != ":"){
 				throw("Expected ':' but got '"+seperator+"' instead.");
 			}
 
 			var v = getNextSymbol();
+
+			if(key == '_hxcls'){
+				var cls =Type.resolveClass(v);
+				if(cls==null) throw "Invalid class name - "+v;
+				o = Type.createEmptyInstance(cls);
+				continue;
+			}
+
 			if(v == "{" && !lastSymbolQuoted){
 				val = doObject();
 			}else if(v == "[" && !lastSymbolQuoted){
@@ -326,7 +336,8 @@ class TJSON {
 		return symbol;
 	}
 
-	private static function encodeObject(buffer:StringBuf, obj:Dynamic,style:EncodeStyle,depth:Int):Void {
+	private static function encodeObject( obj:Dynamic,style:EncodeStyle,depth:Int):String {
+		var buffer = new StringBuf();
 		buffer.add(style.beginObject(depth));
 		var fieldCount = 0;
 		var fields:Array<String>;
@@ -336,18 +347,38 @@ class TJSON {
 		} else {
 			fields = Reflect.fields(obj);
 		}
-		for (field in fields){
-			if(fieldCount++ > 0) buffer.add(style.entrySeperator(depth));
-			else buffer.add(style.firstEntry(depth));
-			var value:Dynamic = Reflect.field(obj,field);
-			buffer.add('"'+field+'"'+style.keyValueSeperator(depth));
-			encodeValue(buffer, value, style, depth);
+		//preserve class name when serializing class objects
+		//is there a way to get c outside of a switch?
+		switch(Type.typeof(obj)){
+			case TClass(c):
+				if(fieldCount++ > 0) buffer.add(style.entrySeperator(depth));
+				else buffer.add(style.firstEntry(depth));
+				buffer.add('"_hxcls"'+style.keyValueSeperator(depth));
+				buffer.add(encodeValue( Type.getClassName(c), style, depth));
+			default:
 		}
+
+		for (field in fields){
+			
+			var value:Dynamic = Reflect.field(obj,field);
+			var vStr:String = encodeValue(value, style, depth);
+			if(vStr!=null){
+				if(fieldCount++ > 0) buffer.add(style.entrySeperator(depth));
+				else buffer.add(style.firstEntry(depth));
+				buffer.add('"'+field+'"'+style.keyValueSeperator(depth)+vStr);
+			}
+			
+		}
+		
+
+		
 		buffer.add(style.endObject(depth));
+		return buffer.toString();
 	}
 
 
-	private static function encodeMap(buffer:StringBuf, obj:Map<Dynamic, Dynamic>,style:EncodeStyle,depth:Int):Void {
+	private static function encodeMap( obj:Map<Dynamic, Dynamic>,style:EncodeStyle,depth:Int):String {
+		var buffer = new StringBuf();
 		buffer.add(style.beginObject(depth));
 		var fieldCount = 0;
 		for (field in obj.keys()){
@@ -355,55 +386,58 @@ class TJSON {
 			else buffer.add(style.firstEntry(depth));
 			var value:Dynamic = obj.get(field);
 			buffer.add('"'+field+'"'+style.keyValueSeperator(depth));
-			encodeValue(buffer, value, style, depth);
+			buffer.add(encodeValue(value, style, depth));
 		}
 		buffer.add(style.endObject(depth));
+		return buffer.toString();
 	}
 
 
-	private static function encodeIterable(buffer:StringBuf, obj:Iterable<Dynamic>, style:EncodeStyle, depth:Int):Void {
+	private static function encodeIterable(obj:Iterable<Dynamic>, style:EncodeStyle, depth:Int):String {
+		var buffer = new StringBuf();
 		buffer.add(style.beginArray(depth));
 		var fieldCount = 0;
 		for (value in obj){
 			if(fieldCount++ >0) buffer.add(style.entrySeperator(depth));
 			else buffer.add(style.firstEntry(depth));
-			encodeValue(buffer, value, style, depth);
+			buffer.add(encodeValue( value, style, depth));
 			
 		}
 		buffer.add(style.endArray(depth));
+		return buffer.toString();
 	}
 
-	private static function encodeValue(buffer:StringBuf, value:Dynamic, style:EncodeStyle, depth:Int):Void {
+	private static function encodeValue( value:Dynamic, style:EncodeStyle, depth:Int):String {
 		if(Std.is(value, Int) || Std.is(value,Float)){
-				buffer.add(value);
+				return(value);
 		}
 		else if(Std.is(value,Array) || Std.is(value,List)){
 			var v: Array<Dynamic> = value;
-			encodeIterable(buffer,v,style,depth+1);
+			return encodeIterable(v,style,depth+1);
 		}
 		else if(Std.is(value,List)){
 			var v: List<Dynamic> = value;
-			encodeIterable(buffer,v,style,depth+1);
+			return encodeIterable(v,style,depth+1);
 
 		}
 		else if(Std.is(value,haxe.ds.StringMap)){
-			encodeMap(buffer,value,style,depth+1);
+			return encodeMap(value,style,depth+1);
 
 		}
 		else if(Std.is(value,String)){
-			buffer.add('"'+Std.string(value).replace("\\","\\\\").replace("\n","\\n").replace("\r","\\r").replace('"','\\"')+'"');
+			return('"'+Std.string(value).replace("\\","\\\\").replace("\n","\\n").replace("\r","\\r").replace('"','\\"')+'"');
 		}
 		else if(Std.is(value,Bool)){
-			buffer.add(value);
+			return(value);
 		}
 		else if(Reflect.isObject(value)){
-			encodeObject(buffer,value,style,depth+1);
+			return encodeObject(value,style,depth+1);
 		}
 		else if(value == null){
-			buffer.add("null");
+			return("null");
 		}
 		else{
-			throw "Unsupported field type: "+Std.string(value);
+			return null;
 		}
 	}
 

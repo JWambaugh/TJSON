@@ -4,6 +4,36 @@ import tjson.TJSON;
 
 import sys.io.File;
 
+class ChildClass{
+	public var myvar:String;
+	private var parent:TestClass;
+	public function new(parent:TestClass){
+		this.parent = parent;
+		myvar = "this works";
+	}
+}
+
+class TestClass{
+	private var priv:String = 'this is private';
+	public var pub:String = 'this is public';
+	public var subObj:ChildClass;
+
+	public function new(){
+		subObj = new ChildClass(this);
+	}
+	public function test(){
+		return "yep";
+	}
+	public function setPriv(v:String){
+		priv = v;
+	}
+	public function getPriv(){
+		return priv;
+	}
+}
+//{"priv":"this is private","pub":"this is public","_hxcls":"TestClass"}
+
+
 class TestParser extends haxe.unit.TestCase{
 
 	public function new(){
@@ -175,6 +205,25 @@ class TestParser extends haxe.unit.TestCase{
 		var obj2= TJSON.parse('{"nullVal":null ,"non-null":"null","array":[null,1]}');
 		var data2:String = TJSON.encode(obj2);
 		assertEquals('{"non-null":"null","nullVal":null,"array":[null,1]}',data2);
+	}
+
+	public function testClassObject(){
+		var obj = new TestClass();
+		obj.setPriv("this works");
+
+		//serialize class object
+		var json = TJSON.encode(obj);
+		//unserialize class object
+		var ob2 = TJSON.parse( json );
+		
+		assertEquals("yep",ob2.test());
+		assertEquals(obj.getPriv(), ob2.getPriv());
+
+
+		//confirm that they are seperate instances
+		obj.setPriv('newString');
+		assertFalse(obj.getPriv() == ob2.getPriv());
+		assertEquals("this works",obj.subObj.myvar);
 	}
 	
 }
