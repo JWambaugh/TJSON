@@ -3,14 +3,14 @@ package tjson;
 using StringTools;
 
 class TJSON {    
-
+	public static var OBJECT_REFERENCE_PREFIX = "@~obRef#";
 	/**
 	 * Parses a JSON string into a haxe dynamic object or array.
 	 * @param String - The JSON string to parse
 	 * @param String the file name to whic the JSON code belongs. Used for generating nice error messages.
 	 */
 	public static function parse(json:String, ?fileName:String="JSON Data", ?stringProcessor:String->Dynamic = null):Dynamic{
-        var t = new TJSONSerializer(json, fileName, stringProcessor);
+        var t = new TJSONParser(json, fileName, stringProcessor);
 		return t.doParse();
 	}
 
@@ -19,8 +19,8 @@ class TJSON {
 	 * @param Dynamic - The object to be serialized
 	 * @param Dynamic - The style to use. Either an object implementing EncodeStyle interface or the strings 'fancy' or 'simple'.
 	 */
-	public static function encode(obj:Dynamic, ?style:Dynamic=null):String{
-		var t = new TJSONEncoder();
+	public static function encode(obj:Dynamic, ?style:Dynamic=null, useCache:Bool=true):String{
+		var t = new TJSONEncoder(useCache);
 		return t.doEncode(obj,style);
 	}
 
@@ -28,16 +28,16 @@ class TJSON {
 }
 
 
-class TJSONSerializer{
+class TJSONParser{
 	var pos:Int;
 	var json:String;
 	var lastSymbolQuoted:Bool; //true if the last symbol was in quotes.
     var fileName:String;
 	var currentLine:Int;
+	var cache:Array<Dynamic>;
 	var floatRegex:EReg;
 	var intRegex:EReg;
 	var strProcessor:String->Dynamic;
-
 
 	public function new(vjson:String, ?vfileName:String="JSON Data", ?stringProcessor:String->Dynamic = null)
     {
@@ -49,6 +49,7 @@ class TJSONSerializer{
 		floatRegex = ~/^-?[0-9]*\.[0-9]+$/;
 		intRegex = ~/^-?[0-9]+$/;	
 		strProcessor = (stringProcessor==null? defaultStringProcessor : stringProcessor);
+		cache = new Array();
     }
 
     public function doParse():Dynamic{
@@ -72,6 +73,7 @@ class TJSONSerializer{
 		var o:Dynamic = { };
 		var val:Dynamic ='';
 		var key:String;
+		cache.push(o);
 		while(pos < json.length){
 			key=getNextSymbol();
 			if(key == "," && !lastSymbolQuoted)continue;
@@ -90,6 +92,8 @@ class TJSONSerializer{
 				var cls =Type.resolveClass(v);
 				if(cls==null) throw "Invalid class name - "+v;
 				o = Type.createEmptyInstance(cls);
+				cache.pop();
+				cache.push(o);
 				continue;
 			}
 
@@ -130,7 +134,15 @@ class TJSONSerializer{
 	}
 
 	private function convertSymbolToProperType(symbol):Dynamic{
-		if(lastSymbolQuoted) return symbol; //things is quotes are always strings
+		if(lastSymbolQuoted) {
+			//value was in quotes, so it's a string.
+			//look for reference prefix, return cached reference if it is
+			if(StringTools.startsWith(symbol,TJSON.OBJECT_REFERENCE_PREFIX)){
+				var idx:Int = Std.parseInt(symbol.substr(TJSON.OBJECT_REFERENCE_PREFIX.length));
+				return cache[idx];
+			}
+			return symbol; //just a normal string so return it
+		}
 		if(looksLikeFloat(symbol)){
 			return Std.parseFloat(symbol);
 		}
@@ -146,6 +158,7 @@ class TJSONSerializer{
 		if(symbol.toLowerCase() == "null"){
 			return null;
 		}
+		
 		return symbol;
 	}
 
@@ -327,8 +340,13 @@ class TJSONSerializer{
 
 
 class TJSONEncoder{
-	public function new(){
 
+	var cache:Array<Dynamic>;
+	var uCache:Bool;
+
+	public function new(useCache:Bool=true){
+		uCache = useCache;
+		if(uCache)cache = new Array();
 	}
 
 	public function doEncode(obj:Dynamic, ?style:Dynamic=null){
@@ -350,7 +368,7 @@ class TJSONEncoder{
 		} else if(Std.is(obj, haxe.ds.StringMap)){
 			buffer.add(encodeMap(obj, st, 0));
 		} else {
-
+			cacheEncode(obj);
 			buffer.add(encodeObject(obj, st, 0));
 		}
 		return buffer.toString();
@@ -427,6 +445,18 @@ class TJSONEncoder{
 		return buffer.toString();
 	}
 
+	private function cacheEncode(value:Dynamic):String{
+		if(!uCache)return null;
+
+		for(c in 0...cache.length){
+			if(cache[c] == value){
+				return '"'+TJSON.OBJECT_REFERENCE_PREFIX+c+'"';
+			}
+		}
+		cache.push(value);
+		return null;
+	}
+
 	private function encodeValue( value:Dynamic, style:EncodeStyle, depth:Int):String {
 		if(Std.is(value, Int) || Std.is(value,Float)){
 				return(value);
@@ -451,6 +481,8 @@ class TJSONEncoder{
 			return(value);
 		}
 		else if(Reflect.isObject(value)){
+			var ret = cacheEncode(value);
+			if(ret != null) return ret;
 			return encodeObject(value,style,depth+1);
 		}
 		else if(value == null){

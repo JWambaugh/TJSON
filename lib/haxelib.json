@@ -5,7 +5,7 @@
   "description": "Tolerant JSON parser and encoder. Unserializes and serializes JSON data, but without all the strictness of standard JSON parsers. Supports multi and single-line comments, keys without quotes, and single quotes.",
   "contributors": ["martamius"],
   "releasenote": "Bug fixes",
-  "version": "1.2.3",
+  "version": "1.3.0",
   "url": "https://github.com/martamius/TJSON",
   "dependencies": {
 

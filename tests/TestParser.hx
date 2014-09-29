@@ -6,9 +6,9 @@ import sys.io.File;
 
 class ChildClass{
 	public var myvar:String;
-	private var parent:TestClass;
+	public var parent:TestClass;
 	public function new(parent:TestClass){
-		//this.parent = parent;
+		this.parent = parent;
 		myvar = "this works";
 	}
 }
@@ -17,9 +17,12 @@ class TestClass{
 	private var priv:String = 'this is private';
 	public var pub:String = 'this is public';
 	public var subObj:ChildClass;
+	public var list:List<String>;
 
 	public function new(){
 		subObj = new ChildClass(this);
+		list = new List();
+		list.push("hello");
 	}
 	public function test(){
 		return "yep";
@@ -213,8 +216,9 @@ class TestParser extends haxe.unit.TestCase{
 
 		//serialize class object
 		var json = TJSON.encode(obj);
+		trace(json);
 		//unserialize class object
-		var ob2 = TJSON.parse( json );
+		var ob2:TestClass = TJSON.parse( json );
 		
 		assertEquals("yep",ob2.test());
 		assertEquals(obj.getPriv(), ob2.getPriv());
@@ -224,6 +228,24 @@ class TestParser extends haxe.unit.TestCase{
 		obj.setPriv('newString');
 		assertFalse(obj.getPriv() == ob2.getPriv());
 		assertEquals("this works",obj.subObj.myvar);
+		assertEquals(ob2, ob2.subObj.parent);
+	}
+
+	public function testObjectReferences(){
+		var arr:Array<TestClass> = new Array();
+		var ob1:TestClass = new TestClass();
+		arr.push(new TestClass());
+		arr.push(new TestClass());
+		arr.push(ob1);
+		arr.push(new TestClass());
+
+		arr.push(ob1);
+		arr.push(new TestClass());
+
+		var json = TJSON.encode(arr);
+		trace(json);
+		var res = TJSON.parse(json);
+		assertEquals(res[4],res[2]);
 	}
 	
 }
