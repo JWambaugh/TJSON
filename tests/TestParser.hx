@@ -174,6 +174,33 @@ class TestParser extends haxe.unit.TestCase{
       assertEquals(o.str, "АБВГД абвгд");
     }
 
+    public function testInt(){
+    	var intStr = "{v:500}";
+    	var o = TJSON.parse(intStr);
+    	assertEquals(500, o.v);
+    	assertTrue(Std.is(o.v, Int));
+
+    	var intStr = "{v:2147483647}";
+    	var o = TJSON.parse(intStr);
+    	assertEquals(2147483647, o.v);
+    	assertTrue(Std.is(o.v, Int));
+
+    	var intStr = "{v:-2147483648}";
+    	var o = TJSON.parse(intStr);
+    	assertEquals(-2147483648, o.v);
+    	assertTrue(Std.is(o.v, Int));
+
+    	var intStr = "{v:5000000000}";
+    	var o = TJSON.parse(intStr);
+    	assertEquals(5000000000.0, o.v);
+    	assertTrue(Std.is(o.v, Float));
+
+    	var intStr = "{v:-5000000000}";
+    	var o = TJSON.parse(intStr);
+    	assertEquals(-5000000000.0, o.v);
+    	assertTrue(Std.is(o.v, Float));
+    }
+
 	public function testChars(){
 		var data = File.getContent('tests/chars.json');
 		var d = TJSON.parse(data);
@@ -216,7 +243,7 @@ class TestParser extends haxe.unit.TestCase{
 
 		//serialize class object
 		var json = TJSON.encode(obj);
-		trace(json);
+		// trace(json);
 		//unserialize class object
 		var ob2:TestClass = TJSON.parse( json );
 		
@@ -243,7 +270,7 @@ class TestParser extends haxe.unit.TestCase{
 		arr.push(new TestClass());
 
 		var json = TJSON.encode(arr);
-		trace(json);
+		// trace(json);
 		var res = TJSON.parse(json);
 		assertEquals(res[4],res[2]);
 	}
