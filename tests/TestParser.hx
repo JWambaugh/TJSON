@@ -19,6 +19,7 @@ class TestClass{
 	public var subObj:ChildClass;
 	public var list:List<String>;
 	public var dontSerialize:String = 'this wont be serialized';
+    public var unserialized = false;
 
 	public function new(){
 		subObj = new ChildClass(this);
@@ -38,6 +39,10 @@ class TestClass{
 	public function TJ_noEncode():Array<String>{
 		return ['dontSerialize'];
 	}
+
+    public function TJ_unserialize(){
+        unserialized = true;
+    }
 }
 //{"priv":"this is private","pub":"this is public","_hxcls":"TestClass"}
 
@@ -282,6 +287,13 @@ class TestParser extends haxe.unit.TestCase{
 		assertFalse(obj.getPriv() == ob2.getPriv());
 		assertEquals("this works",obj.subObj.myvar);
 		assertEquals(ob2, ob2.subObj.parent);
+
+        //confirm that TJ_unserialize was called
+        assertEquals(true, ob2.unserialized);
+
+        //test TJ_noEncode
+        assertEquals("this wont be serialized",obj.dontSerialize);
+        assertEquals(null,ob2.dontSerialize);
 	}
 
 	public function testObjectReferences(){
