@@ -160,7 +160,15 @@ class TJSONParser{
 
 
 	private function looksLikeFloat(s:String):Bool{
-		return floatRegex.match(s);
+		return floatRegex.match(s) || (
+			intRegex.match(s) && {
+				var intStr = intRegex.matched(0);
+				if (intStr.charCodeAt(0) == "-".code)
+					intStr > "-2147483648";
+				else
+					intStr > "2147483647";
+			}
+		);
 	}
 
 	private function looksLikeInt(s:String):Bool{
