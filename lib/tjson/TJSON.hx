@@ -55,18 +55,14 @@ class TJSONParser{
     public function doParse():Dynamic{
     	try{
 			//determine if objector array
-			var s = getNextSymbol();
-			if(s == '{'){
-				return doObject();
-			}
-
-			if(s == '['){
-				return doArray();
+			return switch (getNextSymbol()) {
+				case '{': doObject();
+				case '[': doArray();
+				case s: convertSymbolToProperType(s);
 			}
 		}catch(e:String){
 			throw fileName + " on line " + currentLine + ": " + e;
 		}
-		return null;
 	}
 
 	private function doObject():Dynamic{

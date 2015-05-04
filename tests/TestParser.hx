@@ -48,6 +48,27 @@ class TestParser extends haxe.unit.TestCase{
 	public function testSimple(){
 		var res =TJSON.parse("{key:'value'}");
 		assertEquals('value',res.key);
+
+		var res = TJSON.parse("[]");
+		assertTrue(Std.is(res, Array));
+		assertEquals(0, res.length);
+
+		var res = TJSON.parse("123");
+		assertEquals(123, res);
+
+		var res = TJSON.parse("123.4");
+		assertEquals(123.4, res);
+
+		var res = TJSON.parse('"123.4"');
+		assertEquals("123.4", res);
+
+		var res = TJSON.parse("true");
+		assertEquals(true, res);
+		var res = TJSON.parse("false");
+		assertEquals(false, res);
+
+		var res = TJSON.parse("null");
+		assertEquals(null, res);
 	}
 
 
@@ -216,7 +237,7 @@ class TestParser extends haxe.unit.TestCase{
 
 		//serialize class object
 		var json = TJSON.encode(obj);
-		trace(json);
+		// trace(json);
 		//unserialize class object
 		var ob2:TestClass = TJSON.parse( json );
 		
@@ -243,7 +264,7 @@ class TestParser extends haxe.unit.TestCase{
 		arr.push(new TestClass());
 
 		var json = TJSON.encode(arr);
-		trace(json);
+		// trace(json);
 		var res = TJSON.parse(json);
 		assertEquals(res[4],res[2]);
 	}
