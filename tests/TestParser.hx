@@ -18,6 +18,7 @@ class TestClass{
 	public var pub:String = 'this is public';
 	public var subObj:ChildClass;
 	public var list:List<String>;
+	public var dontSerialize:String = 'this wont be serialized';
 
 	public function new(){
 		subObj = new ChildClass(this);
@@ -32,6 +33,10 @@ class TestClass{
 	}
 	public function getPriv(){
 		return priv;
+	}
+
+	public function TJ_noEncode():Array<String>{
+		return ['dontSerialize'];
 	}
 }
 //{"priv":"this is private","pub":"this is public","_hxcls":"TestClass"}

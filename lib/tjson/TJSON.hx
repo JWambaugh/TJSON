@@ -69,11 +69,16 @@ class TJSONParser{
 		var o:Dynamic = { };
 		var val:Dynamic ='';
 		var key:String;
+		var isClassOb:Bool = false;
 		cache.push(o);
 		while(pos < json.length){
 			key=getNextSymbol();
 			if(key == "," && !lastSymbolQuoted)continue;
 			if(key == "}" && !lastSymbolQuoted){
+				//end of the object. Run the TJ_unserialize function if there is one
+				if( isClassOb && #if flash9 try o.TJ_unserialize != null catch( e : Dynamic ) false #elseif (cs || java) Reflect.hasField(o, "TJ_unserialize") #else o.TJ_unserialize != null #end  ) {
+					o.TJ_unserialize();
+				}
 				return o;
 			}
 
@@ -90,8 +95,10 @@ class TJSONParser{
 				o = Type.createEmptyInstance(cls);
 				cache.pop();
 				cache.push(o);
+				isClassOb = true;
 				continue;
 			}
+
 
 			if(v == "{" && !lastSymbolQuoted){
 				val = doObject();
@@ -383,6 +390,7 @@ class TJSONEncoder{
 		buffer.add(style.beginObject(depth));
 		var fieldCount = 0;
 		var fields:Array<String>;
+		var dontEncodeFields:Array<String> = null;
 		var cls = Type.getClass(obj);
 		if (cls != null) {
 			fields = Type.getInstanceFields(cls);
@@ -397,11 +405,15 @@ class TJSONEncoder{
 				else buffer.add(style.firstEntry(depth));
 				buffer.add('"_hxcls"'+style.keyValueSeperator(depth));
 				buffer.add(encodeValue( Type.getClassName(c), style, depth));
+
+				if( #if flash9 try obj.TJ_noEncode != null catch( e : Dynamic ) false #elseif (cs || java) Reflect.hasField(obj, "TJ_noEncode") #else obj.TJ_noEncode != null #end  ) {
+					dontEncodeFields = obj.TJ_noEncode();
+				}
 			default:
 		}
 
 		for (field in fields){
-			
+			if(dontEncodeFields!=null && dontEncodeFields.indexOf(field)>=0)continue;
 			var value:Dynamic = Reflect.field(obj,field);
 			var vStr:String = encodeValue(value, style, depth);
 			if(vStr!=null){
