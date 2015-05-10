@@ -8,8 +8,8 @@ It supports all the current JSON standard, along with the following tollerances 
 
 1. Support single-quotes for strings
 2. Keys don't have to be wrapped in quotes
-3. C style comments support - /*comment*/
-4. C++ style comments support - //comment
+3. C style comments support - `/*comment*/`
+4. C++ style comments support - `//comment`
 5. Dangling commas don't kill it (commas  are even optional)
 
 As of 1.1.0, TJSON also includes an encoder that encodes anonymous Haxe objects and arrays into JSON!
