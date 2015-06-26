@@ -90,9 +90,13 @@ class TJSONParser{
 			var v = getNextSymbol();
 
 			if(key == '_hxcls'){
-				var cls =Type.resolveClass(v);
-				if(cls==null) throw "Invalid class name - "+v;
-				o = Type.createEmptyInstance(cls);
+				if(v.startsWith('Date@')) {
+					o = Date.fromTime(Std.parseInt(v.substr(5)));
+				} else {
+					var cls =Type.resolveClass(v);
+					if(cls==null) throw "Invalid class name - "+v;
+					o = Type.createEmptyInstance(cls);
+				}
 				cache.pop();
 				cache.push(o);
 				isClassOb = true;
@@ -401,10 +405,15 @@ class TJSONEncoder{
 		//is there a way to get c outside of a switch?
 		switch(Type.typeof(obj)){
 			case TClass(c):
+				var className = Type.getClassName(c);
+
+				// Special value format (Date@timestamp) for the Date class:
+				if(className == "Date") className += '@' + cast(obj, Date).getTime();
+
 				if(fieldCount++ > 0) buffer.add(style.entrySeperator(depth));
 				else buffer.add(style.firstEntry(depth));
 				buffer.add('"_hxcls"'+style.keyValueSeperator(depth));
-				buffer.add(encodeValue( Type.getClassName(c), style, depth));
+				buffer.add(encodeValue( className, style, depth));
 
 				if( #if flash9 try obj.TJ_noEncode != null catch( e : Dynamic ) false #elseif (cs || java) Reflect.hasField(obj, "TJ_noEncode") #else obj.TJ_noEncode != null #end  ) {
 					dontEncodeFields = obj.TJ_noEncode();
