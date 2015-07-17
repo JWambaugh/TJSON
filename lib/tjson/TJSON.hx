@@ -171,15 +171,23 @@ class TJSONParser{
 
 
 	private function looksLikeFloat(s:String):Bool{
-		return floatRegex.match(s) || (
-			intRegex.match(s) && {
+		if(floatRegex.match(s)) return true;
+
+		if(intRegex.match(s)){
+			if({
 				var intStr = intRegex.matched(0);
 				if (intStr.charCodeAt(0) == "-".code)
 					intStr > "-2147483648";
 				else
 					intStr > "2147483647";
-			}
-		);
+			} ) return true;
+
+			var f:Float = Std.parseFloat(s);
+			if(f>2147483647.0) return true;
+			else if (f<-2147483648) return true;
+			
+		} 
+		return false;	
 	}
 
 	private function looksLikeInt(s:String):Bool{
