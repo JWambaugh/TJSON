@@ -20,10 +20,15 @@ class TestClass{
 	public var list:List<String>;
 	public var dontSerialize:String = 'this wont be serialized';
     public var unserialized = false;
+    public var aDate:Date;
+    public var timestamp:Float;
 
 	public function new(){
 		subObj = new ChildClass(this);
 		list = new List();
+        aDate = Date.now();
+        timestamp = aDate.getTime();
+        //trace('timestamp:'+timestamp);
 		list.push("hello");
 	}
 	public function test(){
@@ -287,6 +292,13 @@ class TestParser extends haxe.unit.TestCase{
 		assertFalse(obj.getPriv() == ob2.getPriv());
 		assertEquals("this works",obj.subObj.myvar);
 		assertEquals(ob2, ob2.subObj.parent);
+
+        //test Date object serialization/unserialization
+        assertTrue(ob2.aDate != null);
+        assertEquals(Std.is(ob2.aDate, Date),true);
+        assertEquals(ob2.timestamp, obj.timestamp);
+        assertEquals(ob2.aDate.getTime(),obj.timestamp);
+
 
         //confirm that TJ_unserialize was called
         assertEquals(true, ob2.unserialized);
