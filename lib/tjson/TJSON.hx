@@ -513,10 +513,6 @@ class TJSONEncoder{
 		else if(Std.is(value,Bool)){
 			return(value);
 		}
-		else if (Std.is(value, Date)) {
-			// Date should not be cached, it has a special encoding (see encodeObject).
-			return encodeObject(value,style,depth+1);
-		}
 		else if(Reflect.isObject(value)){
 			var ret = cacheEncode(value);
 			if(ret != null) return ret;
