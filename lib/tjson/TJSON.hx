@@ -436,7 +436,7 @@ class TJSONEncoder{
 			if(vStr!=null){
 				if(fieldCount++ > 0) buffer.add(style.entrySeperator(depth));
 				else buffer.add(style.firstEntry(depth));
-				buffer.add('"'+field+'"'+style.keyValueSeperator(depth)+vStr);
+				buffer.add('"'+field+'"'+style.keyValueSeperator(depth)+Std.string(vStr));
 			}
 			
 		}
