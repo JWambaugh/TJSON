@@ -1,7 +1,7 @@
 TJSON
 =====
 
-The tolerant JSON parser and encoder for HaXe
+The tolerant JSON parser and encoder for Haxe
 
 TJSON is a project to create a JSON parser that is as tolerant as JavaScript is when it comes to JavaScript object notation, if not more error-tolerant.
 It supports all the current JSON standard, along with the following tollerances added:
@@ -41,30 +41,36 @@ Import TJSON class with:
 
 Then you can read JSON data with:
 
-	var jsonData = "{key:'value'}";
-	var object = TJSON.parse(jsonData);
-	trace(object.key); // outputs 'value'
+```haxe
+var jsonData = "{key:'value'}";
+var object = TJSON.parse(jsonData);
+trace(object.key); // outputs 'value'
+```
 
 It's that easy!
 
 **New in 1.1.0** - Encode Haxe objects into a JSON string with:
 
-	var objectToEncode={
-		myKey:'myValue'
-	};
-	var json = TJSON.encode(objectToEncode);  // {"myKey":"myValue"}
+```haxe
+var objectToEncode={
+	myKey:'myValue'
+};
+var json = TJSON.encode(objectToEncode);  // {"myKey":"myValue"}
+```
 
 The encoder currently supports two different encoding styles. The default is 'simple', which contains no whitespace. If you want more human-readable output, try the 'fancy' style:
 
-	var objectToEncode={
-		myKey:'myValue'
-	};
-	var json = TJSON.encode(objectToEncode, 'fancy');
-	/*
-	{
-		"myKey" : "myValue"
-	}
-	*/
+```haxe
+var objectToEncode={
+	myKey:'myValue'
+};
+var json = TJSON.encode(objectToEncode, 'fancy');
+/*
+{
+	"myKey" : "myValue"
+}
+*/
+```
 
 Of course, the encoder can also encode arrays:
 
@@ -84,11 +90,12 @@ If a class object being unserialized has a function named 'TJ_unserialize', it w
 You can specify properties that should not be serialized by defining a function called 'TJ_noEncode' that returns an array of property names not to serialize.
 
 In this example, TJSON will skip the property called 'dontSerialize':
-    
-    public function TJ_noEncode():Array<String>{
-        return ['dontSerialize'];
-    }
 
+```haxe    
+public function TJ_noEncode():Array<String>{
+	return ['dontSerialize'];
+}
+```
 
 License
 =======
