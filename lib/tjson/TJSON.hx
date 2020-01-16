@@ -270,9 +270,7 @@ class TJSONParser{
                             else throw "Not a hex digit";
                         }
                         
-						var utf = new haxe.Utf8();
-						utf.addChar(hexValue);
-						symbol += utf.toString();
+						symbol += String.fromCharCode(hexValue);
                         
 						continue;
 					}
